@@ -3,2351 +3,1252 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FIVE NIGHTS — survival sim</title>
+<title>Five Nights at Freddy's - Fan Remake</title>
 <style>
-:root {
-  --bg: #020202;
-  --panel: #0c0c0c;
-  --line: #2a2a2a;
-  --txt: #c9c9c9;
-  --dim: #666;
-  --freddy: #7a4a22;
-  --bonnie: #6a3fa0;
-  --chica: #c99a15;
-  --foxy: #a83226;
-  --gold: #d9a821;
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: "Courier New", monospace;
-}
-
-html, body {
-  height: 100%;
-  background: #000;
-  color: var(--txt);
-  overflow: hidden;
-}
-
-#root {
-  width: 100vw;
-  height: 100vh;
-  position: relative;
-  user-select: none;
-}
-
-button {
-  cursor: pointer;
-  background: linear-gradient(#1c1c1c, #101010);
-  color: var(--txt);
-  border: 1px solid var(--line);
-  padding: 9px 14px;
-  border-radius: 4px;
-  font-size: 14px;
-  transition: background .12s, filter .12s;
-}
-
-button:hover {
-  filter: brightness(1.25);
-}
-
-button:disabled {
-  opacity: .3;
-  cursor: not-allowed;
-}
-
-.screen {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 18px;
-  background: radial-gradient(circle at 50% 30%, #0b0b0b, #000);
-  padding: 20px;
-  text-align: center;
-}
-
-h1 {
-  letter-spacing: 6px;
-  color: #e8e8e8;
-  text-shadow: 0 0 14px #600, 0 0 40px #300;
-  font-size: 40px;
-}
-
-.sub {
-  color: var(--dim);
-  letter-spacing: 3px;
-}
-
-.menu {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-width: 300px;
-}
-
-.menu button {
-  padding: 13px;
-  font-size: 16px;
-  letter-spacing: 1px;
-}
-
-.menu button:hover {
-  transform: translateY(-1px);
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-}
-
-.card {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  padding: 18px;
-  border-radius: 8px;
-  max-width: 660px;
-  text-align: left;
-  line-height: 1.55;
-  box-shadow: 0 0 30px #000;
-}
-
-.small {
-  font-size: 12px;
-  color: var(--dim);
-}
-
-#grain {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 99;
-  opacity: .06;
-  background-image: repeating-linear-gradient(0deg, #fff 0 1px, transparent 1px 2px);
-  animation: grainJit .09s steps(2) infinite;
-}
-
-@keyframes grainJit {
-  50% {
-    transform: translateY(1px);
-  }
-}
-
-#gameRoot {
-  position: absolute;
-  inset: 0;
-  background: #000;
-  overflow: hidden;
-}
-
-#gameRoot.shake {
-  animation: shake .5s linear;
-}
-
-@keyframes shake {
-  0%, 100% { transform: translate(0); }
-  10% { transform: translate(-14px, 8px); }
-  20% { transform: translate(12px, -10px); }
-  30% { transform: translate(-9px, 5px); }
-  40% { transform: translate(9px, 8px); }
-  50% { transform: translate(-6px, -6px); }
-  60% { transform: translate(6px, 3px); }
-  70% { transform: translate(-4px, 6px); }
-  80% { transform: translate(3px, -4px); }
-  90% { transform: translate(-2px, 2px); }
-}
-
-#officeWrap {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  cursor: crosshair;
-}
-
-#office {
-  position: absolute;
-  inset: -4%;
-  width: 108%;
-  height: 108%;
-  transition: transform .18s ease-out;
-  background: url('https://files.catbox.moe/2mii3u.original') center/cover no-repeat #000;
-}
-
-#office::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(ellipse at center, transparent 40%, #000000a8 100%);
-}
-
-#office.dark {
-  filter: brightness(.22) saturate(.35);
-}
-
-.doorway {
-  position: absolute;
-  border-radius: 6px;
-  overflow: hidden;
-  box-shadow: inset 0 0 40px #000;
-}
-
-#leftDoorway {
-  left: 7%;
-  top: 20%;
-  width: 20%;
-  height: 58%;
-}
-
-#rightDoorway {
-  right: 6%;
-  top: 22%;
-  width: 20%;
-  height: 56%;
-}
-
-.doorway.lit {
-  box-shadow: inset 0 0 40px #ffd98c55, 0 0 30px #ffd98c33;
-}
-
-.doorway .hall {
-  position: absolute;
-  inset: 0;
-  background: #00000066;
-  transition: background .1s;
-}
-
-.doorway.lit .hall {
-  background: #ffd98c22;
-}
-
-.doorPanel {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  background: repeating-linear-gradient(180deg, #3a3a3a 0 16px, #2a2a2a 16px 32px);
-  transform: translateY(-103%);
-  transition: transform .16s cubic-bezier(.5, 0, .3, 1);
-  box-shadow: inset 0 0 25px #000a;
-}
-
-.doorPanel.closed {
-  transform: translateY(0);
-}
-
-.doorWin {
-  position: absolute;
-  top: 14%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 58%;
-  height: 30%;
-  background: rgba(8, 12, 16, .92);
-  border: 4px solid #3c3c3c;
-  border-radius: 5px;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.doorWin.lit {
-  background: rgba(70, 56, 24, .85);
-  border-color: #6a5a38;
-  box-shadow: inset 0 0 26px rgba(255, 215, 140, .5);
-}
-
-.doorFig {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity .06s;
-}
-
-.doorFig.on {
-  opacity: 1;
-}
-
-.wfig {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.whead {
-  position: relative;
-  width: 56%;
-  height: 68%;
-  border-radius: 42% 42% 30% 30%;
-  background: linear-gradient(180deg, var(--c), color-mix(in srgb, var(--c) 38%, #000));
-}
-
-.weye {
-  position: absolute;
-  top: 38%;
-  width: 15%;
-  height: 15%;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 0 6px #fff, 0 0 13px #fff;
-}
-
-.weye.l { left: 20%; }
-.weye.r { right: 20%; }
-
-.wear {
-  position: absolute;
-  top: -38%;
-  width: 17%;
-  height: 44%;
-  background: var(--c);
-  border-radius: 40%;
-}
-
-.wear.l {
-  left: 16%;
-  transform: rotate(-8deg);
-}
-
-.wear.r {
-  right: 16%;
-  transform: rotate(8deg);
-}
-
-.wbeak {
-  position: absolute;
-  bottom: 6%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 9px solid transparent;
-  border-right: 9px solid transparent;
-  border-top: 11px solid #e8891c;
-}
-
-.what {
-  position: absolute;
-  top: -26%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 52%;
-  height: 26%;
-  background: #111;
-  border-radius: 3px;
-}
-
-.ctrlCol {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  z-index: 6;
-}
-
-#leftCtrls {
-  left: 1.5%;
-  top: 40%;
-}
-
-#rightCtrls {
-  right: 1.5%;
-  top: 40%;
-}
-
-.ctrlCol button {
-  width: 112px;
-  font-weight: bold;
-  padding: 12px 6px;
-  font-size: 13px;
-  letter-spacing: 1px;
-  border-width: 2px;
-}
-
-.ctrlCol button.active {
-  background: linear-gradient(#4a1818, #2a0a0a);
-  border-color: #c44;
-  box-shadow: 0 0 14px #f006;
-  color: #fdd;
-}
-
-.ctrlCol button.jammed {
-  background: #300;
-  border-color: #f33;
-  color: #f77;
-  animation: jpulse .5s infinite;
-}
-
-@keyframes jpulse {
-  50% { opacity: .5; }
-}
-
-.ctrlCol button.lock {
-  animation: lightFlick .09s steps(2) infinite;
-}
-
-@keyframes lightFlick {
-  50% { filter: brightness(1.8); }
-}
-
-#camArrow {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 2px;
-  z-index: 28;
-  width: min(470px, 50vw);
-  padding: 8px 12px;
-  cursor: pointer;
-}
-
-#camArrow img {
-  width: 100%;
-  display: block;
-  transition: transform .12s ease;
-  filter: drop-shadow(0 0 8px #000);
-  image-rendering: pixelated;
-}
-
-#camArrow.flip img {
-  transform: scaleY(-1);
-}
-
-#camArrow:hover img {
-  filter: drop-shadow(0 0 14px rgba(255, 255, 255, .6));
-}
-
-#monTrans {
-  position: absolute;
-  inset: 0;
-  z-index: 46;
-  display: none;
-  background: transparent;
-  pointer-events: none;
-}
-
-#monTrans video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: fill;
-}
-
-.spriteCam {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  height: 720px;
-  width: auto;
-  max-width: none;
-  transform: translate(-50%, -50%);
-  will-change: transform;
-  image-rendering: auto;
-}
-
-.fig {
-  position: relative;
-  width: 86px;
-  height: 158px;
-  filter: drop-shadow(0 6px 14px #000);
-  animation: figjit .12s steps(2) infinite;
-}
-
-@keyframes figjit {
-  50% { transform: translateX(1px); }
-}
-
-.fig.sm {
-  width: 64px;
-  height: 118px;
-}
-
-.fig .head {
-  position: absolute;
-  left: 8px;
-  right: 8px;
-  top: 0;
-  height: 54px;
-  border-radius: 26px 26px 14px 14px;
-  background: linear-gradient(180deg, var(--c), color-mix(in srgb, var(--c) 45%, #000));
-}
-
-.fig .torso {
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  top: 46px;
-  bottom: 0;
-  border-radius: 22px 22px 8px 8px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 70%, #000), #000);
-}
-
-.fig .eye {
-  position: absolute;
-  top: 20px;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 0 7px #fff, 0 0 14px #fff;
-}
-
-.fig .eye.l { left: 17px; }
-.fig .eye.r { right: 17px; }
-
-.fig .fname {
-  position: absolute;
-  bottom: -16px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 10px;
-  color: #bbb;
-  background: #000a;
-  padding: 1px 5px;
-  border-radius: 3px;
-  white-space: nowrap;
-}
-
-.fig .hat {
-  position: absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 30px;
-  height: 16px;
-  background: #111;
-  border-radius: 3px;
-}
-
-.fig .hat::after {
-  content: '';
-  position: absolute;
-  bottom: -3px;
-  left: -7px;
-  width: 44px;
-  height: 5px;
-  background: #111;
-  border-radius: 2px;
-}
-
-.fig .ear {
-  position: absolute;
-  top: -26%;
-  width: 13px;
-  height: 32px;
-  border-radius: 7px;
-  background: var(--c);
-}
-
-.fig .ear.l {
-  left: 16%;
-  transform: rotate(-6deg);
-}
-
-.fig .ear.r {
-  right: 16%;
-  transform: rotate(6deg);
-}
-
-.fig .beak {
-  position: absolute;
-  top: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 11px solid transparent;
-  border-right: 11px solid transparent;
-  border-top: 14px solid #e8891c;
-}
-
-.fig .patch {
-  position: absolute;
-  top: 16px;
-  left: 12px;
-  width: 14px;
-  height: 12px;
-  background: #111;
-  border-radius: 50%;
-}
-
-#hud {
-  position: absolute;
-  top: 16px;
-  right: 20px;
-  text-align: right;
-  z-index: 30;
-  pointer-events: none;
-}
-
-#timeLbl {
-  font-size: 34px;
-  color: #fff;
-  text-shadow: 0 0 12px #000, 0 0 30px #fff2;
-  font-weight: bold;
-  letter-spacing: 2px;
-}
-
-#nightLbl {
-  font-size: 14px;
-  color: #999;
-  margin-top: 3px;
-}
-
-#powerBox {
-  position: absolute;
-  left: 20px;
-  bottom: 18px;
-  z-index: 30;
-  pointer-events: none;
-}
-
-#powerPct {
-  font-size: 28px;
-  color: #fff;
-  text-shadow: 0 0 10px #000;
-  font-weight: bold;
-}
-
-.usageBars {
-  display: flex;
-  gap: 4px;
-  margin-top: 7px;
-}
-
-.ubar {
-  width: 19px;
-  height: 28px;
-  background: #111;
-  border: 2px solid #333;
-  border-radius: 2px;
-  transition: .2s;
-}
-
-.ubar.on1 {
-  background: #3f9f4f;
-  border-color: #5fc46f;
-  box-shadow: 0 0 9px #3f9f4f80;
-}
-
-.ubar.on2 {
-  background: #9fc434;
-  border-color: #c4e454;
-  box-shadow: 0 0 9px #9fc43480;
-}
-
-.ubar.on3 {
-  background: #e09020;
-  border-color: #ffb040;
-  box-shadow: 0 0 9px #e0902080;
-}
-
-.ubar.on4 {
-  background: #e03020;
-  border-color: #ff5040;
-  box-shadow: 0 0 12px #e0302080;
-  animation: dangerPulse 1s infinite;
-}
-
-@keyframes dangerPulse {
-  50% { opacity: .6; }
-}
-
-#phoneUI {
-  position: absolute;
-  left: 20px;
-  top: 16px;
-  z-index: 32;
-  display: none;
-  align-items: center;
-  gap: 10px;
-  background: #000a;
-  border: 1px solid #333;
-  padding: 8px 12px;
-  border-radius: 6px;
-}
-
-#phoneUI .icon {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #3a3;
-  animation: ring .6s infinite;
-}
-
-@keyframes ring {
-  0%, 100% { box-shadow: 0 0 4px #3a3; }
-  50% { box-shadow: 0 0 16px #5f5; }
-}
-
-#phoneUI button {
-  padding: 4px 8px;
-  font-size: 11px;
-}
-
-#camOverlay {
-  position: absolute;
-  inset: 0;
-  background: #000;
-  z-index: 25;
-  display: none;
-}
-
-#camView {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  background: #050505;
-}
-
-.scanlines {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 4;
-  background: repeating-linear-gradient(0deg, transparent 0 3px, #00000030 3px 4px);
-}
-
-.crtFlicker {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 5;
-  background: #fff;
-  opacity: 0;
-  animation: crt .1s steps(2) infinite;
-}
-
-@keyframes crt {
-  50% { opacity: .02; }
-}
-
-#staticCv {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 3;
-  opacity: .35;
-  image-rendering: pixelated;
-  pointer-events: none;
-}
-
-#camTopLeft {
-  position: absolute;
-  top: 18px;
-  left: 22px;
-  z-index: 27;
-  color: #ddd;
-  text-shadow: 0 0 8px #000;
-  font-size: 16px;
-  font-weight: bold;
-  letter-spacing: 1px;
-}
-
-#rec {
-  display: inline-block;
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: #f00;
-  margin-right: 9px;
-  box-shadow: 0 0 10px #f00;
-  animation: blink 1s steps(2) infinite;
-}
-
-@keyframes blink {
-  50% { opacity: .15; }
-}
-
-#camMap {
-  position: absolute;
-  right: 20px;
-  bottom: 20px;
-  z-index: 27;
-  background: transparent;
-  padding: 0;
-  border-radius: 0;
-  box-shadow: none;
-}
-
-#mapBox {
-  position: relative;
-  width: min(500px, 48vw);
-  aspect-ratio: 900/680;
-}
-
-#mapBox svg.plan {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.camBtn {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  width: 13%;
-  min-width: 48px;
-  background: #3a3d42;
-  border: 3px solid #ececec;
-  color: #fff;
-  font-weight: bold;
-  font-size: 11px;
-  line-height: 1.15;
-  text-align: left;
-  padding: 4px 6px;
-  letter-spacing: 1px;
-  box-shadow: 0 0 0 2px #17181a;
-  border-radius: 2px;
-}
-
-.camBtn:hover {
-  background: #4a4e55;
-  transform: translate(-50%, -50%);
-}
-
-.camBtn.sel {
-  background: #6a1414;
-  border-color: #ff5555;
-  box-shadow: 0 0 14px #f00a, 0 0 0 2px #17181a;
-}
-
-.roomContent {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 24px;
-  padding: 0;
-  z-index: 2;
-}
-
-.emptyroom {
-  color: #3a3a3a;
-  font-size: 26px;
-  letter-spacing: 6px;
-  text-shadow: 0 0 12px #000;
-}
-
-.camnote {
-  color: #8fae8f;
-  font-size: 15px;
-  width: 100%;
-  text-align: center;
-  text-shadow: 0 0 8px #000;
-}
-
-.audioOnly {
-  color: #777;
-  font-size: 32px;
-  letter-spacing: 6px;
-  width: 100%;
-  text-align: center;
-  text-shadow: 0 0 18px #000;
-  animation: audioFlick 3s infinite;
-}
-
-@keyframes audioFlick {
-  50% { opacity: .6; }
-}
-
-.poster {
-  border: 4px solid #3f3f3f;
-  padding: 30px 38px;
-  color: #999;
-  background: linear-gradient(#161616, #0a0a0a);
-  text-align: center;
-  box-shadow: 0 0 22px #000a;
-  line-height: 1.6;
-}
-
-.poster.golden {
-  border-color: var(--gold);
-  color: var(--gold);
-  text-shadow: 0 0 16px var(--gold);
-  animation: goldGlow 2s infinite;
-}
-
-@keyframes goldGlow {
-  50% { box-shadow: 0 0 40px var(--gold); }
-}
-
-.prop {
-  position: absolute;
-  pointer-events: none;
-  z-index: 1;
-  opacity: .5;
-}
-
-.pedestal {
-  bottom: 12%;
-  width: 60px;
-  height: 16px;
-  background: #222;
-  border-radius: 4px;
-}
-
-.table {
-  bottom: 18%;
-  width: 90px;
-  height: 30px;
-  background: #1c1c1c;
-  border-radius: 6px;
-}
-
-.shelf {
-  top: 22%;
-  width: 140px;
-  height: 8px;
-  background: #202020;
-}
-
-.hallLine {
-  bottom: 0;
-  width: 2px;
-  height: 70%;
-  background: linear-gradient(#0000, #333);
-}
-
-#goldenOverlay {
-  position: absolute;
-  inset: 0;
-  z-index: 40;
-  display: none;
-  background: #000d;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  animation: gshake .09s infinite;
-}
-
-@keyframes gshake {
-  25% { transform: translateX(-3px); }
-  75% { transform: translateX(3px); }
-}
-
-.itsme {
-  color: var(--gold);
-  font-size: 52px;
-  letter-spacing: 12px;
-  text-shadow: 0 0 30px var(--gold);
-  margin-top: 22px;
-  font-weight: bold;
-  animation: itsmeF .16s steps(2) infinite;
-}
-
-@keyframes itsmeF {
-  50% { opacity: .2; }
-}
-
-#cues {
-  position: absolute;
-  top: 18px;
-  left: 190px;
-  z-index: 35;
-  pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  max-width: 320px;
-}
-
-.cue {
-  background: #000b;
-  color: #9fc49f;
-  padding: 5px 10px;
-  border-left: 3px solid #4a4;
-  font-size: 13px;
-  border-radius: 3px;
-  text-shadow: 0 0 4px #000;
-}
-
-#jumpOv {
-  position: absolute;
-  inset: 0;
-  z-index: 80;
-  display: none;
-  background: #000;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-#jumpOv .jfig {
-  transform-origin: bottom center;
-  animation: lunge .5s ease-out forwards;
-}
-
-@keyframes lunge {
-  0% { transform: scale(.4) translateY(80px); opacity: .4; }
-  60% { transform: scale(2.4) translateY(-10px); opacity: 1; }
-  100% { transform: scale(2.7) translateY(-14px); }
-}
-
-#flash {
-  position: absolute;
-  inset: 0;
-  background: #fff;
-  opacity: 0;
-  pointer-events: none;
-  z-index: 81;
-}
-
-.introOv {
-  position: absolute;
-  inset: 0;
-  background: #000;
-  z-index: 70;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-}
-
-.introNight {
-  font-size: 44px;
-  letter-spacing: 8px;
-  color: #ddd;
-  opacity: 0;
-  animation: fadeIn 1.2s forwards;
-}
-
-.introTime {
-  font-size: 22px;
-  color: #777;
-  letter-spacing: 4px;
-  opacity: 0;
-  animation: fadeIn 1.2s .8s forwards;
-}
-
-@keyframes fadeIn {
-  to { opacity: 1; }
-}
-
-.pauseOv {
-  position: absolute;
-  inset: 0;
-  background: #000c;
-  z-index: 60;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.crashScreen {
-  background: #000;
-}
-
-#debugBtn {
-  position: absolute;
-  top: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 50;
-  font-size: 11px;
-  padding: 4px 9px;
-  opacity: .5;
-}
-
-#debugPanel {
-  position: absolute;
-  top: 42px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 49;
-  background: #000d;
-  border: 1px solid var(--line);
-  padding: 10px;
-  border-radius: 6px;
-  font-size: 11px;
-  max-width: 92vw;
-  display: none;
-}
-
-#debugPanel.open {
-  display: block;
-}
-
-#debugPanel pre {
-  color: #8fbf8f;
-  white-space: pre-wrap;
-}
-
-#debugPanel .row {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-top: 7px;
-}
-
-#debugPanel button {
-  padding: 5px 8px;
-  font-size: 11px;
-}
+    /* --- CSS STYLES --- */
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: #000;
+        color: #fff;
+        font-family: 'Courier New', Courier, monospace;
+        overflow: hidden;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    #game-container {
+        position: relative;
+        width: 1024px;
+        height: 768px;
+        margin: 0 auto;
+        background: #111;
+        overflow: hidden;
+        border: 2px solid #333;
+    }
+
+    /* Office Background */
+    #office-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+        z-index: 1;
+        transition: filter 0.2s;
+    }
+
+    /* Doors */
+    .door {
+        position: absolute;
+        top: 15%;
+        width: 120px;
+        height: 70%;
+        background: repeating-linear-gradient(45deg, #333, #333 10px, #222 10px, #222 20px);
+        border: 4px solid #555;
+        z-index: 2;
+        transition: transform 0.3s ease-in-out;
+        box-shadow: inset 0 0 20px #000;
+    }
+
+    #door-left {
+        left: 20px;
+        transform: translateY(-100%);
+    }
+
+    #door-right {
+        right: 20px;
+        transform: translateY(-100%);
+    }
+
+    .door.closed {
+        transform: translateY(0);
+    }
+
+    /* Door Controls */
+    .controls {
+        position: absolute;
+        top: 40%;
+        width: 60px;
+        height: 120px;
+        background: #222;
+        border: 2px solid #444;
+        z-index: 3;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        align-items: center;
+        padding: 10px 0;
+        box-shadow: 0 0 10px rgba(0,0,0,0.8);
+    }
+
+    #controls-left { left: 150px; }
+    #controls-right { right: 150px; }
+
+    .btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 2px solid #000;
+        cursor: pointer;
+        box-shadow: 0 4px 5px rgba(0,0,0,0.5);
+        transition: all 0.1s;
+        font-weight: bold;
+        font-size: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .btn-door { background: #a33; color: #fff; }
+    .btn-door.active { background: #f55; box-shadow: 0 0 10px #f55; }
+    
+    .btn-light { background: #dd8; color: #332; }
+    .btn-light.active { background: #ffea; box-shadow: 0 0 15px #ffea; }
+
+    /* Light Effects */
+    .light-beam {
+        position: absolute;
+        top: 0;
+        width: 300px;
+        height: 100%;
+        background: radial-gradient(circle at center, rgba(255, 255, 200, 0.4) 0%, rgba(0,0,0,0) 70%);
+        z-index: 2;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.1s;
+    }
+
+    #light-beam-left { left: 20px; transform-origin: top left; }
+    #light-beam-right { right: 20px; transform-origin: top right; transform: scaleX(-1); }
+
+    .light-on { opacity: 1 !important; }
+
+    /* Animatronics in Doorway */
+    .monster-door {
+        position: absolute;
+        top: 20%;
+        width: 100px;
+        height: 200px;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        z-index: 1;
+        display: none;
+    }
+    #monster-left { left: 40px; }
+    #monster-right { right: 40px; }
+
+    /* Camera Monitor */
+    #monitor-btn {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 300px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid #fff;
+        color: #fff;
+        text-align: center;
+        line-height: 40px;
+        font-size: 18px;
+        cursor: pointer;
+        z-index: 10;
+        border-radius: 5px;
+        transition: background 0.2s;
+    }
+    #monitor-btn:hover { background: rgba(255, 255, 255, 0.4); }
+
+    #camera-screen {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        z-index: 20;
+        display: none;
+        flex-direction: column;
+    }
+
+    #cam-feed {
+        flex: 1;
+        position: relative;
+        background: #111;
+        overflow: hidden;
+        border: 10px solid #333;
+        margin: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #cam-image {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        filter: contrast(1.2) brightness(0.8) sepia(0.3);
+    }
+
+    /* Static Noise Overlay */
+    .static-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noise"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noise)" opacity="0.4"/%3E%3C/svg%3E');
+        opacity: 0.15;
+        pointer-events: none;
+        animation: staticAnim 0.2s infinite;
+    }
+
+    @keyframes staticAnim {
+        0% { transform: translate(0,0); }
+        100% { transform: translate(-10px, -10px); }
+    }
+
+    /* Camera Map */
+    #cam-map {
+        position: absolute;
+        bottom: 80px;
+        right: 40px;
+        width: 200px;
+        height: 150px;
+        background: rgba(0, 20, 0, 0.8);
+        border: 2px solid #0f0;
+        z-index: 30;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 5px;
+        padding: 10px;
+    }
+
+    .cam-btn {
+        background: #030;
+        border: 1px solid #0f0;
+        color: #0f0;
+        font-size: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .cam-btn.active { background: #0f0; color: #000; }
+    .cam-btn.disabled { opacity: 0.3; pointer-events: none; }
+
+    /* HUD */
+    #hud {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        z-index: 15;
+        font-size: 20px;
+        text-shadow: 1px 1px 2px #000;
+        pointer-events: none;
+    }
+
+    #power-meter {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        z-index: 15;
+        text-align: right;
+        font-size: 24px;
+        font-weight: bold;
+        text-shadow: 1px 1px 2px #000;
+    }
+
+    #usage-bar {
+        display: inline-block;
+        width: 100px;
+        height: 20px;
+        background: #333;
+        border: 1px solid #fff;
+        margin-left: 10px;
+        vertical-align: middle;
+        position: relative;
+    }
+
+    #usage-fill {
+        height: 100%;
+        background: #0f0;
+        width: 0%;
+        transition: width 0.5s, background 0.5s;
+    }
+
+    /* Jumpscare */
+    #jumpscare {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        z-index: 100;
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #jumpscare-img {
+        max-width: 90%;
+        max-height: 90%;
+        animation: shake 0.1s infinite;
+    }
+
+    @keyframes shake {
+        0% { transform: translate(0,0) scale(1); }
+        25% { transform: translate(-10px, 10px) scale(1.1); }
+        50% { transform: translate(10px, -10px) scale(1); }
+        75% { transform: translate(-10px, -10px) scale(1.1); }
+        100% { transform: translate(0,0) scale(1); }
+    }
+
+    /* Game Over / Win Screen */
+    #end-screen {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        z-index: 101;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    #end-title { font-size: 48px; margin-bottom: 20px; color: #f00; }
+    #end-msg { font-size: 24px; margin-bottom: 40px; color: #fff; }
+    #restart-btn {
+        padding: 15px 30px;
+        font-size: 20px;
+        background: #333;
+        color: #fff;
+        border: 2px solid #fff;
+        cursor: pointer;
+        font-family: inherit;
+    }
+    #restart-btn:hover { background: #555; }
+
+    /* Title Screen */
+    #title-screen {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        z-index: 200;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+    #title-text { font-size: 60px; color: #fff; text-shadow: 0 0 10px #f00; margin-bottom: 20px; }
+    #start-prompt { font-size: 24px; color: #aaa; animation: blink 1s infinite; }
+
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* Phone Guy Overlay */
+    #phone-guy {
+        position: absolute;
+        bottom: 80px;
+        left: 20px;
+        width: 150px;
+        height: 150px;
+        background: radial-gradient(circle, rgba(50,50,50,0.9), rgba(0,0,0,0));
+        border-radius: 50%;
+        z-index: 50;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: #ccc;
+        text-align: center;
+        border: 2px dashed #555;
+    }
+    #phone-icon { font-size: 40px; color: #0f0; animation: ring 0.5s infinite; }
+    @keyframes ring { 0% { transform: rotate(0); } 25% { transform: rotate(10deg); } 75% { transform: rotate(-10deg); } 100% { transform: rotate(0); } }
+
+    /* Debug Panel */
+    #debug-panel {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(0,0,0,0.7);
+        border: 1px solid #555;
+        padding: 10px;
+        font-size: 12px;
+        color: #0f0;
+        z-index: 300;
+        display: none;
+        font-family: monospace;
+        pointer-events: none;
+    }
 </style>
 </head>
 <body>
-<div id="root"></div>
-<div id="grain"></div>
+
+<div id="game-container">
+    <!-- Title Screen -->
+    <div id="title-screen">
+        <div id="title-text">FIVE NIGHTS</div>
+        <div id="start-prompt">CLICK TO START</div>
+    </div>
+
+    <!-- Office -->
+    <div id="office-bg"></div>
+    
+    <!-- Left Side -->
+    <div id="door-left" class="door"></div>
+    <div id="light-beam-left" class="light-beam"></div>
+    <div id="monster-left" class="monster-door"></div>
+    <div id="controls-left" class="controls">
+        <div class="btn btn-door" id="btn-door-left">DOOR</div>
+        <div class="btn btn-light" id="btn-light-left">LIGHT</div>
+    </div>
+
+    <!-- Right Side -->
+    <div id="door-right" class="door"></div>
+    <div id="light-beam-right" class="light-beam"></div>
+    <div id="monster-right" class="monster-door"></div>
+    <div id="controls-right" class="controls">
+        <div class="btn btn-door" id="btn-door-right">DOOR</div>
+        <div class="btn btn-light" id="btn-light-right">LIGHT</div>
+    </div>
+
+    <!-- HUD -->
+    <div id="hud">
+        <div>Night <span id="night-display">1</span></div>
+        <div id="time-display">12 AM</div>
+    </div>
+    <div id="power-meter">
+        <div>Power: <span id="power-val">100</span>%</div>
+        <div id="usage-bar"><div id="usage-fill"></div></div>
+        <div style="font-size: 14px; margin-top:5px;">Usage: <span id="usage-val">1</span></div>
+    </div>
+
+    <!-- Monitor Button -->
+    <div id="monitor-btn">OPEN MONITOR</div>
+
+    <!-- Camera System -->
+    <div id="camera-screen">
+        <div class="static-overlay"></div>
+        <div id="cam-feed">
+            <img id="cam-image" src="" alt="Camera Feed">
+            <div id="cam-name" style="position:absolute; top:20px; left:20px; color:#0f0; font-size:20px; text-shadow:1px 1px 0 #000;">CAM 1A</div>
+        </div>
+        <div id="cam-map">
+            <!-- Generated by JS -->
+        </div>
+        <div style="position:absolute; bottom:20px; left:20px; color:#fff; font-size:14px;">
+            <button class="btn" style="width:100px; height:30px; border-radius:0;" id="toggle-map-btn">TOGGLE MAP</button>
+        </div>
+    </div>
+
+    <!-- Phone Guy -->
+    <div id="phone-guy">
+        <div id="phone-icon">📞</div>
+        <div id="phone-text">Hello? Hello hello?</div>
+    </div>
+
+    <!-- Jumpscare -->
+    <div id="jumpscare">
+        <img id="jumpscare-img" src="" alt="Jumpscare">
+    </div>
+
+    <!-- End Screen -->
+    <div id="end-screen">
+        <div id="end-title">GAME OVER</div>
+        <div id="end-msg">You survived until 6 AM!</div>
+        <button id="restart-btn">MAIN MENU</button>
+    </div>
+
+    <!-- Debug -->
+    <div id="debug-panel"></div>
+</div>
+
 <script>
-"use strict";
+/**
+ * FNAF Fan Remake - Cleaned & Optimized Code
+ * Features: 7 Nights, 4 Animatronics, Power Mgmt, Audio, Cameras
+ */
 
-// Utility functions
-const $ = (selector) => document.querySelector(selector);
-const root = $("#root");
-const rnd = (min, max) => min + Math.random() * (max - min);
-const rint = (min, max) => Math.floor(rnd(min, max + 1));
-const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+// --- CONSTANTS & CONFIGURATION ---
 
-// Asset URLs - grouped by type
-const AUDIO_URLS = {
-  phone: "https://files.catbox.moe/9hb3et.ogg",
-  fan: "https://files.catbox.moe/ucomf0.ogg",
-  lights: "https://files.catbox.moe/s6uhhp.ogg",
-  monitorOpen: "https://files.catbox.moe/c1fndm.ogg",
-  monitorClose: "https://files.catbox.moe/m6fwq8.ogg",
-  foxySong: "https://files.catbox.moe/0s8fpt.ogg",
-  panSound: "https://files.catbox.moe/qxkrv5.ogg",
-  garble: [
-    "https://files.catbox.moe/yo5q86.ogg",
-    "https://files.catbox.moe/uwho3w.ogg",
-    "https://files.catbox.moe/6emy1z.ogg",
-    "https://files.catbox.moe/m0ygh2.ogg"
-  ]
+const DIFFICULTY_SETTINGS = [
+    // Night 1
+    { freddy: 3, bonnie: 3, chica: 3, foxy: 2, max_active: 3 },
+    // Night 2
+    { freddy: 4, bonnie: 4, chica: 4, foxy: 3, max_active: 4 },
+    // Night 3
+    { freddy: 5, bonnie: 5, chica: 5, foxy: 4, max_active: 5 },
+    // Night 4
+    { freddy: 6, bonnie: 6, chica: 6, foxy: 5, max_active: 6 },
+    // Night 5
+    { freddy: 7, bonnie: 7, chica: 7, foxy: 6, max_active: 7 },
+    // Night 6 (20/20/20/20)
+    { freddy: 20, bonnie: 20, chica: 20, foxy: 20, max_active: 20 },
+    // Night 7 (Custom Nightmare)
+    { freddy: 25, bonnie: 25, chica: 25, foxy: 25, max_active: 25 }
+];
+
+const CAMERAS = [
+    { id: '1A', name: 'Show Stage', x: 1, y: 1 },
+    { id: '1B', name: 'Dining Area', x: 2, y: 1 },
+    { id: '1C', name: 'Pirate Cove', x: 3, y: 1 },
+    { id: '2A', name: 'W. Hall', x: 1, y: 2 },
+    { id: '2B', name: 'W. Hall Corner', x: 0, y: 2 }, // Left Door view
+    { id: '3A', name: 'E. Hall', x: 3, y: 2 },
+    { id: '3B', name: 'E. Hall Corner', x: 4, y: 2 }, // Right Door view
+    { id: '4A', name: 'Kitchen', x: 2, y: 3 },
+    { id: '5', name: 'Parts & Service', x: 2, y: 0 },
+    { id: '6', name: 'Freddie Fazbear Head', x: 0, y: 0 }, // Easter egg
+    { id: '7', name: 'Hidden Room', x: 4, y: 0 }
+];
+
+// Placeholder colors for cameras since we don't have external assets
+const CAM_COLORS = {
+    '1A': '#322', '1B': '#223', '1C': '#322', 
+    '2A': '#222', '2B': '#111', 
+    '3A': '#222', '3B': '#111', 
+    '4A': '#332', '5': '#211', '6': '#000', '7': '#101'
 };
 
-const IMAGE_URLS = {
-  arrow: "https://files.catbox.moe/mb2j2r.png",
-  office: "https://files.catbox.moe/2mii3u.original",
-  monitorOpenVideo: "https://files.catbox.moe/cdf6g8.webm",
-  monitorLowerVideo: "https://files.catbox.moe/yc31we.webm"
-};
+// --- AUDIO SYSTEM ---
 
-const COVE_SPRITES = {
-  s1: "https://files.catbox.moe/b6t84y.png",
-  s2: "https://files.catbox.moe/uqako6.png",
-  s3: "https://files.catbox.moe/qdfibc.png",
-  s4: "https://files.catbox.moe/mqomqt.png",
-  itsme: "https://files.catbox.moe/xchzcn.png"
-};
-
-const STAGE_SPRITES = {
-  all: "https://files.catbox.moe/wiorob.png",
-  empty: "https://files.catbox.moe/yz2rew.png",
-  fonly: "https://files.catbox.moe/azcr8y.png",
-  bgone: "https://files.catbox.moe/v0lamm.png",
-  cgone: "https://files.catbox.moe/s3ajrs.png",
-  stare: "https://files.catbox.moe/m0b7yp.png"
-};
-
-// Constants
-const SPRITE_HEIGHT = 720;
-const COVE_PAN_SPEED = 0.16;
-const COVE_HOLD_DURATION = 2;
-const PAN_CHANCE = 0.5;
-const PAN_COOLDOWN = 0.6;
-const GARBLE_DURATION = 5;
-
-// Image caching system
-const imageCache = {};
-let preloadPending = 0;
-let preloadDone = false;
-
-function preloadImage(url) {
-  if (imageCache[url]) return imageCache[url];
-  
-  const img = new Image();
-  imageCache[url] = img;
-  preloadPending++;
-  
-  const onDone = () => {
-    preloadPending--;
-    if (preloadPending <= 0) {
-      preloadDone = true;
-      const el = $("#loadStatus");
-      if (el) el.textContent = "sprites ready";
-    }
-  };
-  
-  img.src = url;
-  if (img.decode) {
-    img.decode().then(onDone).catch(onDone);
-  } else {
-    img.onload = onDone;
-    img.onerror = onDone;
-  }
-  return img;
-}
-
-function preloadAllImages() {
-  [
-    IMAGE_URLS.office,
-    IMAGE_URLS.arrow,
-    ...Object.values(COVE_SPRITES),
-    ...Object.values(STAGE_SPRITES)
-  ].forEach(preloadImage);
-}
-
-// Timing configurations
-const TIMINGS = {
-  wiki: { H: [0, 90, 179, 268, 357, 446, 535] },
-  decomp: { H: [0, 86, 172, 258, 344, 430, 516] }
-};
-let currentTiming = TIMINGS.wiki;
-
-// Audio system with improved naming and error handling
 const AudioSys = {
-  ctx: null,
-  masterGain: null,
-  ambient: [],
-  lightHum: null,
-  phoneAudio: null,
-  fanAudio: null,
-  lightsAudio: null,
-  songAudio: null,
-  ready: false,
-  monitorBuffers: { oc: null, ds: null },
-  monitorActive: [],
-  garbleBuffers: [],
-  panBuffer: null,
-  
-  init() {
-    if (this.ready) return;
-    try {
-      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-      this.masterGain = this.ctx.createGain();
-      this.masterGain.gain.value = 0.85;
-      this.masterGain.connect(this.ctx.destination);
-      this.ready = true;
-      this.loadMonitorSounds();
-      this.loadGarbleSounds();
-    } catch (e) {
-      console.warn("Audio init failed:", e);
+    ctx: null,
+    masterGain: null,
+    monitorBuffers: {},
+    garbleBuffers: [],
+    isMuted: false,
+
+    init: function() {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        this.ctx = new AudioContext();
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.gain.value = 0.5;
+        this.masterGain.connect(this.ctx.destination);
+        this.generateSounds();
+    },
+
+    generateSounds: function() {
+        if (!this.ctx) return;
+        
+        // Generate static/garble sounds procedurally
+        const createNoise = (type) => {
+            const bufferSize = this.ctx.sampleRate * 2; // 2 seconds
+            const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            return buffer;
+        };
+
+        this.garbleBuffers.push(createNoise());
+        
+        // Simple beep for buttons
+        const beepBuf = this.ctx.createBuffer(1, this.ctx.sampleRate * 0.1, this.ctx.sampleRate);
+        const beepData = beepBuf.getChannelData(0);
+        for(let i=0; i<beepBuf.length; i++) beepData[i] = Math.sin(i * 0.5) * (1 - i/beepBuf.length);
+        this.monitorBuffers['click'] = beepBuf;
+
+        // Static noise for camera toggle
+        this.monitorBuffers['static'] = createNoise();
+    },
+
+    playSound: function(bufferName, type = 'one-shot') {
+        if (!this.ctx || this.isMuted) return;
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+
+        const source = this.ctx.createBufferSource();
+        let buffer = this.monitorBuffers[bufferName];
+        
+        if (!buffer && bufferName === 'garble') {
+            buffer = this.garbleBuffers[Math.floor(Math.random() * this.garbleBuffers.length)];
+        }
+
+        if (!buffer) return;
+
+        source.buffer = buffer;
+        const gain = this.ctx.createGain();
+        
+        if (type === 'one-shot') {
+            source.connect(gain);
+            gain.connect(this.masterGain);
+            gain.gain.value = 0.1;
+            source.start(0);
+        } else if (type === 'loop') {
+            source.loop = true;
+            source.connect(gain);
+            gain.connect(this.masterGain);
+            gain.gain.value = 0.05;
+            source.start(0);
+            return source; // Return source to stop later
+        }
+    },
+
+    playGarble: function() {
+        this.playSound('garble', 'one-shot');
+    },
+
+    resume: function() {
+        if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
     }
-  },
-  
-  resume() {
-    if (this.ctx && this.ctx.state === "suspended") {
-      this.ctx.resume();
-    }
-  },
-  
-  loadMonitorSounds() {
-    if (!this.ready) return;
-    
-    const loadBuffer = (url, key) => {
-      if (this.monitorBuffers[key]) return;
-      fetch(url)
-        .then(response => {
-          if (!response.ok) throw new Error("Failed to fetch");
-          return response.arrayBuffer();
-        })
-        .then(arrayBuffer => this.ctx.decodeAudioData(arrayBuffer))
-        .then(buffer => {
-          this.monitorBuffers[key] = buffer;
-        })
-        .catch(() => {});
-    };
-    
-    loadBuffer(AUDIO_URLS.monitorOpen, "oc");
-    loadBuffer(AUDIO_URLS.monitorClose, "ds");
-  },
-  
-  loadGarbleSounds() {
-    if (!this.ready) return;
-    
-    AUDIO_URLS.garble.forEach((url, index) => {
-      if (this.garbleBuffers[index]) return;
-      fetch(url)
-        .then(response => {
-          if (!response.ok) throw new Error("Failed to fetch");
-          return response.arrayBuffer();
-        })
-        .then(arrayBuffer => this.ctx.decodeAudioData(arrayBuffer))
-        .then(buffer => {
-          this.garbleBuffers[index] = buffer;
-        })
-        .catch(() => {});
-    });
-    
-    if (!this.panBuffer) {
-      fetch(AUDIO_URLS.panSound)
-        .then(response => {
-          if (!response.ok) throw new Error("Failed to fetch");
-          return response.arrayBuffer();
-        })
-        .then(arrayBuffer => this.ctx.decodeAudioData(arrayBuffer))
-        .then(buffer => {
-          this.panBuffer = buffer;
-        })
-        .catch(() => {});
-    }
-  },
-  
-  playGarble() {
-    if (!this.ready) return;
-    const buffers = this.garbleBuffers.filter(Boolean);
-    if (!buffers.length) return;
-    
-    const source = this.ctx.createBufferSource();
-    source.buffer = buffers[rint(0, buffers.length - 1)];
-    source.connect(this.masterGain);
-    source.start();
-  },
-  
-  playPan() {
-    if (this.ready && this.panBuffer) {
-      const source = this.ctx.createBufferSource();
-      source.buffer = this.panBuffer;
-      source.connect(this.masterGain);
-      source.start();
-    } else {
-      const audio = new Audio(AUDIO_URLS.panSound);
-      audio.play().catch(() => {});
-    }
-  },
-  
-  initSong() {
-    if (this.songAudio) return;
-    try {
-      this.songAudio = new Audio(AUDIO_URLS.foxySong);
-      this.songAudio.preload = "auto";
-    } catch (e) {}
-  },
-  
-  playSong() {
-    if (this.songAudio) {
-      try {
-        this.songAudio.currentTime = 0;
-        this.songAudio.play().catch(() => {});
-      } catch (e) {}
-    }
-  },
-  
-  playMonitorSound(key, cutMs) {
-    const buffer = this.monitorBuffers[key];
-    if (this.ready && buffer) {
-      const source = this.ctx.createBufferSource();
-      source.buffer = buffer;
-      source.connect(this.masterGain);
-      source.start();
-      
-      const record = {
-        key,
-        stop: () => {
-          try { source.stop(); } catch (e) {}
-        },
-        timeoutId: 0
-      };
-      
-      source.onended = () => {
-        const idx = this.monitorActive.indexOf(record);
-        if (idx >= 0) this.monitorActive.splice(idx, 1);
-      };
-      
-      if (cutMs) {
-        record.timeoutId = setTimeout(record.stop, cutMs);
-      }
-      this.monitorActive.push(record);
-    } else {
-      const audio = new Audio(key === "oc" ? AUDIO_URLS.monitorOpen : AUDIO_URLS.monitorClose);
-      audio.play().catch(() => {});
-      if (cutMs) {
-        setTimeout(() => {
-          try { audio.pause(); } catch (e) {}
-        }, cutMs);
-      }
-    }
-  },
-  
-  stopMonitorSoundByKey(key) {
-    this.monitorActive = this.monitorActive.filter(record => {
-      if (record.key === key) {
-        clearTimeout(record.timeoutId);
-        record.stop();
-        return false;
-      }
-      return true;
-    });
-  },
-  
-  stopMonitorSounds() {
-    this.monitorActive.forEach(record => {
-      clearTimeout(record.timeoutId);
-      record.stop();
-    });
-    this.monitorActive = [];
-  },
-  
-  generateNoise(seconds) {
-    const sampleRate = this.ctx.sampleRate;
-    const length = sampleRate * seconds;
-    const buffer = this.ctx.createBuffer(1, length, sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < length; i++) {
-      data[i] = Math.random() * 2 - 1;
-    }
-    return buffer;
-  },
-  
-  startAmbient() {
-    if (!this.ready) return;
-    const ctx = this.ctx;
-    const oscillator = ctx.createOscillator();
-    oscillator.type = "sine";
-    oscillator.frequency.value = 44;
-    
-    const gain = ctx.createGain();
-    gain.gain.value = 0.04;
-    oscillator.connect(gain);
-    gain.connect(this.masterGain);
-    oscillator.start();
-    this.ambient = [oscillator];
-  },
-  
-  initFan() {
-    this.stopFan();
-    try {
-      this.fanAudio = new Audio(AUDIO_URLS.fan);
-      this.fanAudio.loop = true;
-      this.fanAudio.volume = 0.22;
-      this.fanAudio.play().catch(() => {});
-    } catch (e) {}
-  },
-  
-  setFan(enabled) {
-    if (!this.fanAudio) return;
-    if (enabled) {
-      if (this.fanAudio.paused) this.fanAudio.play().catch(() => {});
-    } else {
-      if (!this.fanAudio.paused) this.fanAudio.pause();
-    }
-  },
-  
-  stopFan() {
-    if (this.fanAudio) {
-      try { this.fanAudio.pause(); } catch (e) {}
-      this.fanAudio = null;
-    }
-  },
-  
-  initLights() {
-    this.stopLights();
-    try {
-      this.lightsAudio = new Audio(AUDIO_URLS.lights);
-      this.lightsAudio.loop = true;
-      this.lightsAudio.volume = 0;
-      this.lightsAudio.play().catch(() => {});
-    } catch (e) {}
-  },
-  
-  stopLights() {
-    if (this.lightsAudio) {
-      try { this.lightsAudio.pause(); } catch (e) {}
-      this.lightsAudio = null;
-    }
-  },
-  
-  stopAll() {
-    try {
-      this.ambient.forEach(osc => osc.stop());
-      this.ambient = [];
-      this.humOff();
-    } catch (e) {}
-    this.stopFan();
-    this.stopLights();
-    this.stopMonitorSounds();
-    if (this.songAudio) {
-      try { this.songAudio.pause(); } catch (e) {}
-    }
-  },
-  
-  playDoor(close) {
-    if (!this.ready) return;
-    const ctx = this.ctx;
-    const time = ctx.currentTime;
-    
-    const osc1 = ctx.createOscillator();
-    osc1.type = "sine";
-    osc1.frequency.setValueAtTime(close ? 110 : 130, time);
-    osc1.frequency.exponentialRampToValueAtTime(38, time + 0.14);
-    
-    const gain1 = ctx.createGain();
-    gain1.gain.setValueAtTime(0.5, time);
-    gain1.gain.exponentialRampToValueAtTime(0.001, time + 0.2);
-    osc1.connect(gain1);
-    gain1.connect(this.masterGain);
-    osc1.start(time);
-    osc1.stop(time + 0.2);
-    
-    const osc2 = ctx.createOscillator();
-    osc2.type = "square";
-    osc2.frequency.value = close ? 760 : 560;
-    
-    const gain2 = ctx.createGain();
-    gain2.gain.setValueAtTime(0.07, time);
-    gain2.gain.exponentialRampToValueAtTime(0.001, time + 0.09);
-    osc2.connect(gain2);
-    gain2.connect(this.masterGain);
-    osc2.start(time);
-    osc2.stop(time + 0.09);
-  },
-  
-  humOn() {
-    if (!this.ready || this.lightHum) return;
-    const ctx = this.ctx;
-    const osc = ctx.createOscillator();
-    osc.type = "sawtooth";
-    osc.frequency.value = 120;
-    
-    const filter = ctx.createBiquadFilter();
-    filter.type = "lowpass";
-    filter.frequency.value = 400;
-    
-    const gain = ctx.createGain();
-    gain.gain.value = 0.03;
-    osc.connect(filter);
-    filter.connect(gain);
-    gain.connect(this.masterGain);
-    osc.start();
-    this.lightHum = { osc, gain };
-  },
-  
-  humOff() {
-    if (this.lightHum) {
-      try { this.lightHum.osc.stop(); } catch (e) {}
-      this.lightHum = null;
-    }
-  },
-  
-  click(high) {
-    if (!this.ready) return;
-    const ctx = this.ctx;
-    const time = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    osc.type = "square";
-    osc.frequency.value = high ? 700 : 380;
-    
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.05, time);
-    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
-    osc.connect(gain);
-    gain.connect(this.masterGain);
-    osc.start(time);
-    osc.stop(time + 0.05);
-  },
-  
-  buzz() {
-    if (!this.ready) return;
-    const ctx = this.ctx;
-    const time = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    osc.type = "square";
-    osc.frequency.value = 90;
-    
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.05, time);
-    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
-    osc.connect(gain);
-    gain.connect(this.masterGain);
-    osc.start(time);
-    osc.stop(time + 0.12);
-  },
-  
-  laugh() {
-    if (!this.ready) return;
-    const ctx = this.ctx;
-    let time = ctx.currentTime;
-    for (let i = 0; i < 3; i++) {
-      const osc = ctx.createOscillator();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(120, time);
-      osc.frequency.exponentialRampToValueAtTime(70, time + 0.22);
-      
-      const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0.18, time);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.25);
-      osc.connect(gain);
-      gain.connect(this.masterGain);
-      osc.start(time);
-      osc.stop(time + 0.26);
-      time += 0.34;
-    }
-  },
-  
-  footstep() {
-    if (!this.ready) return;
-    const ctx = this.ctx;
-    const time = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(70, time);
-    osc.frequency.exponentialRampToValueAtTime(40, time + 0.1);
-    
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.16, time);
-    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
-    osc.connect(gain);
-    gain.connect(this.masterGain);
-    osc.start(time);
-    osc.stop(time + 0.12);
-  },
-  
-  jumpscareScream() {
-    if (!this.ready) return;
-    const ctx = this.ctx;
-    const time = ctx.currentTime;
-    
-    const noise = ctx.createBufferSource();
-    noise.buffer = this.generateNoise(1);
-    const waveShaper = ctx.createWaveShaper();
-    const curve = new Float32Array(256);
-    for (let i = 0; i < 256; i++) {
-      const x = i / 128 - 1;
-      curve[i] = Math.tanh(x * 6);
-    }
-    waveShaper.curve = curve;
-    
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.6, time);
-    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.9);
-    noise.connect(waveShaper);
-    waveShaper.connect(gain);
-    gain.connect(this.masterGain);
-    noise.start(time);
-    
-    const osc = ctx.createOscillator();
-    osc.type = "sawtooth";
-    osc.frequency.setValueAtTime(700, time);
-    osc.frequency.linearRampToValueAtTime(1300, time + 0.08);
-    osc.frequency.linearRampToValueAtTime(500, time + 0.6);
-    
-    const oscGain = ctx.createGain();
-    oscGain.gain.setValueAtTime(0.3, time);
-    oscGain.gain.exponentialRampToValueAtTime(0.001, time + 0.75);
-    osc.connect(oscGain);
-    oscGain.connect(this.masterGain);
-    osc.start(time);
-    osc.stop(time + 0.75);
-  },
-  
-  musicBox() {
-    if (!this.ready) return 0;
-    const ctx = this.ctx;
-    let time = ctx.currentTime + 0.1;
-    const sequence = [
-      [349, 0.4], [349, 0.4], [349, 0.4], [523, 0.8], [494, 0.4], [440, 0.4], [392, 0.4], [349, 0.8],
-      [349, 0.4], [349, 0.4], [349, 0.4], [523, 0.8], [587, 0.6], [523, 0.6], [494, 1.2]
-    ];
-    sequence.forEach(([freq, duration]) => {
-      const osc1 = ctx.createOscillator();
-      osc1.type = "sine";
-      osc1.frequency.value = freq * 2;
-      const osc2 = ctx.createOscillator();
-      osc2.type = "sine";
-      osc2.frequency.value = freq * 4;
-      
-      const gain1 = ctx.createGain();
-      gain1.gain.setValueAtTime(0.13, time);
-      gain1.gain.exponentialRampToValueAtTime(0.001, time + duration * 0.9);
-      const gain2 = ctx.createGain();
-      gain2.gain.setValueAtTime(0.03, time);
-      gain2.gain.exponentialRampToValueAtTime(0.001, time + duration * 0.5);
-      
-      osc1.connect(gain1);
-      osc2.connect(gain2);
-      gain1.connect(this.masterGain);
-      gain2.connect(this.masterGain);
-      osc1.start(time);
-      osc1.stop(time + duration);
-      osc2.start(time);
-      osc2.stop(time + duration);
-      time += duration;
-    });
-    return time - ctx.currentTime;
-  },
-  
-  chimes() {
-    if (!this.ready) return;
-    const ctx = this.ctx;
-    const time = ctx.currentTime;
-    [523.25, 659.25, 783.99, 1046.5].forEach((freq, index) => {
-      const osc = ctx.createOscillator();
-      osc.type = "sine";
-      osc.frequency.value = freq;
-      
-      const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0, time + index * 0.32);
-      gain.gain.linearRampToValueAtTime(0.22, time + index * 0.32 + 0.04);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + index * 0.32 + 1.6);
-      osc.connect(gain);
-      gain.connect(this.masterGain);
-      osc.start(time + index * 0.32);
-      osc.stop(time + index * 0.32 + 1.6);
-    });
-  },
-  
-  ring() {
-    if (!this.ready) return;
-    const ctx = this.ctx;
-    let time = ctx.currentTime;
-    for (let i = 0; i < 2; i++) {
-      const osc = ctx.createOscillator();
-      osc.type = "square";
-      osc.frequency.value = 1400;
-      
-      const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0.06, time);
-      gain.gain.setValueAtTime(0, time + 0.35);
-      osc.connect(gain);
-      gain.connect(this.masterGain);
-      osc.start(time);
-      osc.stop(time + 0.4);
-      time += 0.5;
-    }
-  },
-  
-  playPhone() {
-    this.stopPhone();
-    try {
-      this.phoneAudio = new Audio(AUDIO_URLS.phone);
-      this.phoneAudio.volume = 0.85;
-      this.phoneAudio.play().catch(() => {});
-    } catch (e) {}
-  },
-  
-  stopPhone() {
-    if (this.phoneAudio) {
-      try {
-        this.phoneAudio.pause();
-        this.phoneAudio.currentTime = 0;
-      } catch (e) {}
-      this.phoneAudio = null;
-    }
-  }
 };
 
-// Initialize audio on first user interaction
-document.addEventListener("click", () => {
-  AudioSys.init();
-  AudioSys.resume();
-  AudioSys.initSong();
-  if (AudioSys.lightsAudio && AudioSys.lightsAudio.paused && State.screen === "game") {
-    AudioSys.lightsAudio.play().catch(() => {});
-  }
-  if (AudioSys.fanAudio && AudioSys.fanAudio.paused && State.screen === "game" && State.started && State.monitorState !== "up" && !State.outage) {
-    AudioSys.fanAudio.play().catch(() => {});
-  }
-});
+// --- GAME STATE ---
 
-let transFallback=0;
-function activeVid(){ if(S.monState==="opening")return $("#vidOpen");
- if(S.monState==="closing")return $("#vidLower"); return null; }
-function hideTrans(){ clearTimeout(transFallback);
- const vo=$("#vidOpen"),vl=$("#vidLower");
- if(vo)vo.pause(); if(vl)vl.pause();
- const ov=$("#monTrans"); if(ov)ov.style.display="none"; }
-function playTrans(which,startAt){
- const v=which==="raise"?$("#vidOpen"):$("#vidLower");
- const o=which==="raise"?$("#vidLower"):$("#vidOpen");
- if(o)o.pause();
- const ov=$("#monTrans"); ov.style.display="block";
- if(v)v.style.opacity="1"; if(o)o.style.opacity="0";
- if(!v){ finishTrans(); return; }
- const begin=()=>{ try{ const d=isFinite(v.duration)?v.duration:Infinity;
-   v.currentTime=startAt>0?Math.min(startAt,d):0; }catch(e){}
-  v.play().catch(()=>{}); };
- if(v.readyState>=1) begin(); else v.addEventListener("loadedmetadata",begin,{once:true});
- clearTimeout(transFallback);
- transFallback=setTimeout(()=>{ if(S.monState==="opening"||S.monState==="closing") finishTrans(); },8000); }
-function finishTrans(){ clearTimeout(transFallback); hideTrans();
- if(S.monState==="opening"){ S.monState="up"; S.camStatic=0; AudioSys.monPlay("ds",0); rollStare(); }
- else if(S.monState==="closing"){ S.monState="office"; S.monitorUp=false;
-  if(S.goldenPoster){S.goldenOffice=true;S.goldenTimer=2;S.goldenPoster=false;} }
- renderFrame(); }
-function rollStare(){ S.freddyStare=false;
- if(S.freddy.loc==="stage"&&S.bonnie.loc!=="stage"&&S.chica.loc!=="stage"){
-  if(Math.random()<0.1)S.freddyStare=true; } }
-function rollItsMe(){ S.foxyItsMe=false;
- if(S.foxy.stage>=3 && S.bonnie.loc!=="stage" && S.chica.loc!=="stage" && S.freddy.loc!=="stage"){
-  if(Math.random()<0.1){ S.foxyItsMe=true; addCue("(the cove sign reads wrong...)"); } } }
-function markAction(){ S.lastAction=S.time; }
-function killLights(){ S.leftLight=false;S.rightLight=false;S.lightLock.L=0;S.lightLock.R=0; }
-function raiseMonitor(){ if(S.screen!=="game"||S.outage||S.monState==="up")return;
- const interrupt=(S.monState==="closing");
- const av=activeVid(); const at=(interrupt&&av)?av.currentTime:0;
- if(interrupt&&av)av.pause();
- S.monState="opening"; S.monitorUp=true; markAction();
- killLights();
- rollItsMe();
- AudioSys.monStop(); AudioSys.monPlay("oc",0);
- playTrans("raise",at);
- renderFrame(); }
-function lowerMonitor(){ if(S.screen!=="game"||S.outage||S.monState==="office")return;
- if(S.pendingKill){ triggerJumpscare(S.pendingKill.who,S.pendingKill.who+" got you."); return; }
- const interrupt=(S.monState==="opening");
- const av=activeVid(); const at=(interrupt&&av)?av.currentTime:0;
- if(interrupt&&av)av.pause();
- S.monState="closing"; markAction();
- S.foxy.noMove=rnd(0.83,17.5);
- S.foxyItsMe=false;
- AudioSys.monStop(); AudioSys.monPlay("oc",500);
- playTrans("lower",at);
- renderFrame(); }
+const Game = {
+    night: 1,
+    hour: 0, // 0 = 12AM, 6 = 6AM
+    power: 100,
+    usage: 1,
+    isRunning: false,
+    isMonitorOpen: false,
+    currentCam: '1A',
+    
+    // Doors & Lights
+    leftDoorClosed: false,
+    rightDoorClosed: false,
+    leftLightOn: false,
+    rightLightOn: false,
 
-function getHour(t){ let h=0; for(let i=0;i<6;i++){ if(t>=T.H[i])h=i; } return h; }
+    // Animatronics State
+    animatronics: {
+        freddy: { location: '1A', level: 0, moveTimer: 0 },
+        bonnie: { location: '1A', level: 0, moveTimer: 0 },
+        chica: { location: '1A', level: 0, moveTimer: 0 },
+        foxy: { location: '1C', level: 0, stage: 0, moveTimer: 0 }
+    },
 
-const C={freddy:"#7a4a22",bonnie:"#6a3fa0",chica:"#c99a15",foxy:"#a83226",gold:"#d9a821"};
-/* >>> LOCKED — VERIFIED FNaF1 VALUES. DO NOT MODIFY IN FUTURE EDITS. <<<
-   Movement opportunity timers (seconds). */
-const MOVE_T={freddy:3.02,bonnie:4.97,chica:4.98,foxy:5.01};
-const CAMS={ "1A":{n:"Show Stage",loc:"stage"},"1B":{n:"Dining Area",loc:"dining"},
- "1C":{n:"Pirate Cove",loc:"cove"},"2A":{n:"West Hall",loc:"westhall"},
- "2B":{n:"W. Hall Corner",loc:"westcorner"},"3":{n:"Supply Closet",loc:"closet"},
- "4A":{n:"East Hall",loc:"easthall"},"4B":{n:"E. Hall Corner",loc:"eastcorner"},
- "5":{n:"Backstage",loc:"backstage"},"6":{n:"Kitchen",loc:"kitchen",audio:true},
- "7":{n:"Restrooms",loc:"restrooms"} };
-const CAM_KEYS=Object.keys(CAMS);
-const ROOM_TO_CAM={}; CAM_KEYS.forEach(k=>{ROOM_TO_CAM[CAMS[k].loc]=k;});
-const MAP_POS={ "1A":[39.2,8.1],"1B":[34.7,23.7],"5":[10.7,31.0],"7":[87.5,31.0],
- "1C":[27.4,45.0],"3":[20.1,72.8],"6":[85.7,67.8],
- "2A":[39.2,77.6],"4A":[63.3,77.6],"2B":[39.2,89.0],"4B":[63.3,89.0] };
-/* >>> LOCKED — VERIFIED DIFFICULTY TABLE (order F-B-C-F, rows 12AM/2AM/3AM/4AM).
-   Time buffs: Bonnie +1 @2/3/4AM; Chica & Foxy +1 @3/4AM. DO NOT MODIFY. <<< */
-const AI_SCHEDULE={1:[[0,0,0,0],[0,1,0,0],[0,2,1,1],[0,3,2,2]],
- 2:[[0,3,1,1],[0,4,1,1],[0,5,2,2],[0,6,3,3]],
- 3:[[1,0,5,2],[1,1,5,2],[1,2,6,3],[1,3,7,4]],
- 5:[[3,5,7,5],[3,6,7,5],[3,7,8,6],[3,8,9,7]],
- 6:[[4,10,12,6],[4,11,12,6],[4,12,13,7],[4,13,14,8]]};
-const HIDDEN={1:0,2:6,3:5,4:4,5:3,6:3,7:3};
-const FREDDY_PATH=["stage","dining","restrooms","kitchen","easthall","eastcorner"];
-const BONNIE_GRAPH={stage:["backstage","dining"],dining:["backstage","westhall"],backstage:["dining","westhall"],
- westhall:["closet","westcorner"],closet:["leftdoor","westhall"],westcorner:["closet","leftdoor"]};
-const CHICA_GRAPH={stage:["dining"],dining:["restrooms","kitchen"],restrooms:["kitchen","easthall"],
- kitchen:["restrooms","easthall"],easthall:["dining","eastcorner"],eastcorner:["rightdoor","easthall"]};
+    // Timers
+    aiTimer: 0,
+    powerTimer: 0,
+    gameLoopId: null,
+    secondCounter: 0
+};
 
-const S={};
-function freshState(){ Object.assign(S,{ screen:"title",night:1,unlocked:loadProg(),customAI:[1,3,3,1],
- time:0,power:100,powerAcc:0,hiddenAcc:0,usage:1,monitorUp:false,monState:"office",currentCam:"1A",camStatic:0,
- garble:{},lastPanSnd:-99,
- leftDoor:false,rightDoor:false,leftLight:false,rightLight:false,leftJam:false,rightJam:false,
- lightLock:{L:0,R:0},freddyStare:false,
- pendingKill:null,goldenPoster:false,goldenOffice:false,goldenTimer:0,goldenAcc:0,foxyItsMe:false,
- outage:null,ai:[0,0,0,0],night4Freddy:1,paused:false,started:false,introT:0,roomSig:"",lastAction:0,foxyForce:false,
- pan:{x:-1,dir:1,wait:0,wasCove:false},
- freddy:{loc:"stage",acc:0,pending:0},bonnie:{loc:"stage",acc:0},chica:{loc:"stage",acc:0},
- foxy:{stage:0,acc:0,noMove:0,s4t:0,runT:0,attacks:0,songAcc:0},
- cues:[],cueId:0,el:{},musicT:0,phoneOn:false,staticT:0 }); }
-function loadProg(){try{return parseInt(localStorage.getItem("fnaf_unlocked")||"1")||1;}catch(e){return 1;}}
-function saveProg(){try{localStorage.setItem("fnaf_unlocked",String(S.unlocked));}catch(e){}}
+// --- DOM ELEMENTS CACHE ---
 
-function addCue(t){S.cues.push({id:++S.cueId,t,life:3.5});if(S.cues.length>5)S.cues.shift();}
-function updateCues(dt){S.cues.forEach(c=>c.life-=dt);S.cues=S.cues.filter(c=>c.life>0);}
+const UI = {};
 
-/* View Disturbed: garble BOTH the cam the mover LEFT and the cam it arrived on,
-   so whichever cam you're watching when a mover is on it goes to static. */
-function onAnimMove(from,to){ const cams=new Set();
- const a=ROOM_TO_CAM[from]; if(a)cams.add(a);
- const b=ROOM_TO_CAM[to]; if(b)cams.add(b);
- cams.forEach(cm=>{ S.garble[cm]=GARBLE_DUR; if(S.monitorUp&&S.currentCam===cm)AudioSys.playGarble(); }); }
-function tryPanSound(){ if(S.time-S.lastPanSnd<PAN_COOLDOWN)return;
- if(Math.random()<PAN_CHANCE){ AudioSys.playPan(); S.lastPanSnd=S.time; } }
-
-function updatePan(dt){ const p=S.pan;
- const sprite=(S.monitorUp&&(S.currentCam==="1C"||S.currentCam==="1A"));
- if(p.wait>0){ p.wait-=dt;
-  if(p.wait<=0){ p.dir*=-1; if(sprite)tryPanSound(); }
-  p.wasCove=sprite; return; }
- if(sprite&&!p.wasCove)tryPanSound();
- p.wasCove=sprite;
- p.x+=p.dir*COVE_PAN_SPEED*dt;
- if(p.x>=1){p.x=1;p.wait=COVE_HOLD;}
- else if(p.x<=-1){p.x=-1;p.wait=COVE_HOLD;} }
-
-function getAIRow(n,i){ if(n===7)return S.customAI.slice();
- if(n===4){const B=[2,3,4,5],Cc=[4,4,5,6],F=[6,6,7,8];return[S.night4Freddy,B[i],Cc[i],F[i]];}
- return AI_SCHEDULE[n][i].slice(); }
-function updateAISchedule(){ const h=getHour(S.time); const i=h>=4?3:h>=3?2:h>=2?1:0;
- const row=getAIRow(S.night,i);
- if(S.night===1&&S.foxyForce)row[3]=Math.max(row[3],1);
- S.ai=row; }
-function roll(ai){return rint(1,20)<=ai;}
-
-function ghtsTarget(){
-  if(S.outage) return 0;
-  if(S.time>=T.H[6]) return 0;
-  if(S.freddy.loc==="office") return 1.0;
-  let t=0;
-  if(["westhall","westcorner","closet","leftdoor"].includes(S.bonnie.loc)) t++;
-  if(["easthall","eastcorner","rightdoor"].includes(S.chica.loc)) t++;
-  if(S.foxy.stage>=2) t++;
-  return [0,.3,.5,.75][t];
-}
-function updateGhts(dt){
-  if(!AudioSys.ghtsEl) return;
-  const active=(S.screen==="game"&&S.started&&!S.paused);
-  const target=active?ghtsTarget():0;
-  const v=AudioSys.ghtsEl.volume;
-  AudioSys.ghtsEl.volume=clamp(v+(target-v)*Math.min(1,dt*6),0,1);
+function cacheElements() {
+    UI.officeBg = document.getElementById('office-bg');
+    UI.doorLeft = document.getElementById('door-left');
+    UI.doorRight = document.getElementById('door-right');
+    UI.lightLeft = document.getElementById('light-beam-left');
+    UI.lightRight = document.getElementById('light-beam-right');
+    UI.monsterLeft = document.getElementById('monster-left');
+    UI.monsterRight = document.getElementById('monster-right');
+    
+    UI.btnDoorLeft = document.getElementById('btn-door-left');
+    UI.btnDoorRight = document.getElementById('btn-door-right');
+    UI.btnLightLeft = document.getElementById('btn-light-left');
+    UI.btnLightRight = document.getElementById('btn-light-right');
+    
+    UI.powerVal = document.getElementById('power-val');
+    UI.usageFill = document.getElementById('usage-fill');
+    UI.usageVal = document.getElementById('usage-val');
+    UI.timeDisplay = document.getElementById('time-display');
+    UI.nightDisplay = document.getElementById('night-display');
+    
+    UI.monitorBtn = document.getElementById('monitor-btn');
+    UI.cameraScreen = document.getElementById('camera-screen');
+    UI.camImage = document.getElementById('cam-image');
+    UI.camName = document.getElementById('cam-name');
+    UI.camMap = document.getElementById('cam-map');
+    
+    UI.jumpscare = document.getElementById('jumpscare');
+    UI.jumpscareImg = document.getElementById('jumpscare-img');
+    UI.endScreen = document.getElementById('end-screen');
+    UI.endTitle = document.getElementById('end-title');
+    UI.endMsg = document.getElementById('end-msg');
+    UI.titleScreen = document.getElementById('title-screen');
+    UI.phoneGuy = document.getElementById('phone-guy');
+    UI.debugPanel = document.getElementById('debug-panel');
 }
 
-function freddyAdvance(){const f=S.freddy;
- if(f.loc==="stage"&&(S.bonnie.loc==="stage"||S.chica.loc==="stage")){addCue("Freddy waits on stage...");return;}
- const i=FREDDY_PATH.indexOf(f.loc);
- if(i>=0&&i<FREDDY_PATH.length-1){const from=f.loc;f.loc=FREDDY_PATH[i+1];addCue("Freddy laughs (moved)");AudioSys.laugh();onAnimMove(from,f.loc);
-  if(f.loc==="kitchen")addCue("♪ Toreador tune (Kitchen)");} }
-function freddyPhase2(){ if(S.monitorUp&&S.currentCam==="4B")return;
- if(S.monitorUp){ if(S.rightDoor&&!S.rightJam){const from=S.freddy.loc;S.freddy.loc="easthall";addCue("Freddy blocked → 4A");AudioSys.click(false);onAnimMove(from,"easthall");}
-  else{const from=S.freddy.loc;S.freddy.loc="office";S.pendingKill={who:"Freddy"};addCue("Freddy slips into the office...");onAnimMove(from,"office");} } }
-function updateFreddy(dt){const f=S.freddy,ai=S.ai[0];if(f.loc==="office"||ai<=0)return;
- if(f.pending>0){const st=(ai<10)&&S.monitorUp;if(!st)f.pending-=dt;if(f.pending<=0)freddyAdvance();return;}
- f.acc+=dt;if(f.acc<MOVE_T.freddy)return;f.acc=0;if(!roll(ai))return;
- if(f.loc==="eastcorner")freddyPhase2();
- else{if(ai>=10)freddyAdvance();else f.pending=(10-ai)*1.6;} }
-function updateBonnie(dt){const b=S.bonnie,ai=S.ai[1];if(ai<=0)return;b.acc+=dt;if(b.acc<MOVE_T.bonnie)return;b.acc=0;
- if(!roll(ai))return;
- if(b.loc==="leftdoor"){ if(S.leftDoor&&!S.leftJam){const from=b.loc;b.loc="dining";addCue("Bonnie leaves the left door");onAnimMove(from,b.loc);}
-  else{if(!S.leftJam){S.leftJam=true;addCue("!! LEFT DOOR JAMMED !!");AudioSys.door(false);}S.pendingKill={who:"Bonnie"};} return;}
- const o=BONNIE_GRAPH[b.loc]; if(o){const from=b.loc;b.loc=o[rint(0,o.length-1)];AudioSys.footstep();onAnimMove(from,b.loc);
-  if(["westhall","closet","westcorner","leftdoor"].includes(b.loc))addCue("(footsteps, west)");
-  if(b.loc==="westcorner"&&S.night>=4)addCue("(gurgle 2B)");
-  if(b.loc==="leftdoor")addCue("Something at the LEFT door");} }
-function updateChica(dt){const c=S.chica,ai=S.ai[2];if(ai<=0)return;c.acc+=dt;if(c.acc<MOVE_T.chica)return;c.acc=0;
- if(!roll(ai))return;
- if(c.loc==="rightdoor"){ if(S.rightDoor&&!S.rightJam){const from=c.loc;c.loc=Math.random()<.5?"dining":"easthall";addCue("Chica leaves the right door");onAnimMove(from,c.loc);}
-  else{if(!S.rightJam){S.rightJam=true;addCue("!! RIGHT DOOR JAMMED !!");AudioSys.door(false);}S.pendingKill={who:"Chica"};} return;}
- const o=CHICA_GRAPH[c.loc]; if(o){const from=c.loc;c.loc=o[rint(0,o.length-1)];AudioSys.footstep();onAnimMove(from,c.loc);
-  if(["kitchen","easthall","eastcorner","rightdoor"].includes(c.loc))addCue("(footsteps, east)");
-  if(c.loc==="eastcorner"&&S.night>=4)addCue("(gurgle 4B)");
-  if(c.loc==="rightdoor")addCue("Something at the RIGHT door");} }
+// --- INITIALIZATION ---
 
-function startFoxyRun(){ const fx=S.foxy; fx.stage=4; fx.runT=1.5;
- addCue("FOXY IS RUNNING!"); AudioSys.footstep(); AudioSys.footstep(); }
-function updateFoxy(dt){ const fx=S.foxy; if(S.outage)return;
- if(S.night===1&&!S.foxyForce&&(S.time-S.lastAction)>70){ S.foxyForce=true; addCue("(the cove curtain rustles...)"); }
- if(fx.stage===4){ fx.runT-=dt;
-  if(fx.runT<=0){
-   if(S.leftDoor&&!S.leftJam){ fx.attacks++; const dr=1+5*(fx.attacks-1);
-    S.power-=dr; addCue("Foxy knocks! -"+dr+"%"); AudioSys.door(true);
-    fx.stage=rint(0,1); fx.s4t=0; fx.acc=0;
-    if(S.power<=0){S.power=0;startOutage();} }
-   else { triggerJumpscare("Foxy","Foxy reached the open left door."); } }
-  return; }
- if(fx.stage===3){
-  if(S.monitorUp&&S.currentCam==="2A"){ startFoxyRun(); return; }
-  fx.s4t-=dt; if(fx.s4t<=0){ startFoxyRun(); return; } }
- if(S.ai[3]<=0) return;
- if(fx.noMove>0) fx.noMove-=dt;
- fx.songAcc+=dt;
- if(fx.songAcc>=3){ fx.songAcc=0;
-  if((fx.stage===0||fx.stage===1)&&!(S.monitorUp&&S.currentCam==="1C")&&Math.random()<1/30){
-   AudioSys.playSong(); addCue("(dum... dum... dum...)"); } }
- if(S.monitorUp) return;
- fx.acc+=dt;
- if(fx.acc>=MOVE_T.foxy){ fx.acc=0;
-  if(fx.noMove>0) return;
-  if(roll(S.ai[3])){
-   if(fx.stage<3){ fx.stage++;
-    if(fx.stage===1)addCue("(Foxy peeks out)");
-    if(fx.stage===2)addCue("(Foxy is out of the curtain)");
-    if(fx.stage===3){ fx.s4t=25; addCue("Foxy left the cove!"); } } } } }
+function init() {
+    cacheElements();
+    setupCameraMap();
+    setupEventListeners();
+    
+    // Show title screen initially
+    UI.titleScreen.style.display = 'flex';
+}
 
-function updateGolden(dt){ if(S.monitorUp&&S.currentCam==="2B"&&!S.goldenPoster&&!S.goldenOffice){
-  S.goldenAcc+=dt;if(S.goldenAcc>=1){S.goldenAcc=0;if(Math.random()<1/34464){S.goldenPoster=true;addCue("The poster looks wrong...");}}}
- if(S.goldenOffice){S.goldenTimer-=dt;if(S.goldenTimer<=0)triggerJumpscare("GoldenFreddy","CRASH");} }
+function setupCameraMap() {
+    UI.camMap.innerHTML = '';
+    CAMERAS.forEach(cam => {
+        const btn = document.createElement('div');
+        btn.className = 'cam-btn';
+        btn.textContent = cam.id;
+        btn.dataset.id = cam.id;
+        btn.onclick = () => switchCamera(cam.id);
+        UI.camMap.appendChild(btn);
+    });
+}
 
-function calcUsage(){let u=1;if(S.leftDoor)u++;if(S.rightDoor)u++;if(S.leftLight)u++;if(S.rightLight)u++;if(S.monitorUp)u++;return u;}
-function updatePower(dt){if(S.outage)return;S.powerAcc+=dt;
- while(S.powerAcc>=1){S.powerAcc-=1;S.power-=Math.min(calcUsage(),4)*.1;
-  const hi=HIDDEN[S.night];if(hi){S.hiddenAcc++;if(S.hiddenAcc>=hi){S.hiddenAcc=0;S.power-=.1;}}}
- if(S.power<=0){S.power=0;startOutage();} }
-function startOutage(){S.outage={phase:"jingle",t:0,dark:rnd(3,8)};
- S.monitorUp=false;S.monState="office";hideTrans();
- S.leftDoor=false;S.rightDoor=false;killLights();
- AudioSys.humOff();AudioSys.stopPhone();S.phoneOn=false;
- AudioSys.setFan(false);
- addCue("POWER OUT...");S.musicT=AudioSys.musicBox(); }
-function updateOutage(dt){const o=S.outage;o.t+=dt;
- if(o.phase==="jingle"){ if(o.t>S.musicT)o.phase="dark"; }
- else if(o.phase==="dark"){ if(o.t>S.musicT+o.dark){triggerJumpscare("Freddy","Power failure. Freddy found you in the dark.");} } }
+function setupEventListeners() {
+    // Title Screen
+    UI.titleScreen.addEventListener('click', () => {
+        AudioSys.init();
+        AudioSys.resume();
+        startGame();
+    });
 
-function toggleDoor(s){if(S.outage||S.monitorUp)return; markAction();
- if(s==="L"){if(S.leftJam){AudioSys.buzz();return;}S.leftDoor=!S.leftDoor;AudioSys.door(S.leftDoor);}
- else{if(S.rightJam){AudioSys.buzz();return;}S.rightDoor=!S.rightDoor;AudioSys.door(S.rightDoor);} renderFrame();}
-function setLight(s,on){ if(s==="L")S.leftLight=on; else S.rightLight=on; if(!on)S.lightLock[s]=0; }
-function toggleLight(s){ if(S.outage||S.monitorUp)return;
- if(s==="L"&&S.leftJam){AudioSys.buzz();return;}
- if(s==="R"&&S.rightJam){AudioSys.buzz();return;}
- markAction();
- const other=(s==="L")?"R":"L";
- const on=(s==="L")?S.leftLight:S.rightLight;
- if(on){
-  if(S.lightLock[s]>0){ AudioSys.buzz(); return; }
-  setLight(s,false);
- } else {
-  setLight(other,false);
-  setLight(s,true);
-  if(Math.random()<0.1){ S.lightLock[s]=0.5; addCue("(the light flickers...)"); }
- }
- AudioSys.click(true); renderFrame(); }
+    // Restart Button
+    document.getElementById('restart-btn').addEventListener('click', () => {
+        UI.endScreen.style.display = 'none';
+        UI.titleScreen.style.display = 'flex';
+    });
 
-function triggerJumpscare(who,reason){ if(S.screen!=="game")return; S.screen="jump";
- hideTrans();
- AudioSys.stopAll();AudioSys.stopPhone();S.phoneOn=false;AudioSys.jumpscareScream();
- buildJumpscare(who,reason); }
-function doWin(){ if(S.night<7){S.unlocked=Math.max(S.unlocked,S.night+1);saveProg();}
- AudioSys.stopAll();AudioSys.stopPhone();S.phoneOn=false;AudioSys.chimes();
- if(S.night===6)showEnding();else if(S.night===7)showPinkSlip();else showWinScreen(); }
+    // Monitor Toggle
+    UI.monitorBtn.addEventListener('click', toggleMonitor);
+    document.getElementById('toggle-map-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        UI.camMap.style.display = UI.camMap.style.display === 'none' ? 'grid' : 'none';
+    });
 
-function drawStatic(){const cv=$("#staticCv");if(!cv)return;const cx=cv.getContext("2d");
- const w=cv.width,h=cv.height;const img=cx.createImageData(w,h);
- for(let i=0;i<img.data.length;i+=4){const v=Math.random()*255;img.data[i]=v;img.data[i+1]=v;img.data[i+2]=v;img.data[i+3]=40;}
- cx.putImageData(img,0,0);}
+    // Door/Light Buttons
+    UI.btnDoorLeft.addEventListener('click', () => toggleDoor('left'));
+    UI.btnDoorRight.addEventListener('click', () => toggleDoor('right'));
+    UI.btnLightLeft.addEventListener('click', () => toggleLight('left'));
+    UI.btnLightRight.addEventListener('click', () => toggleLight('right'));
 
-function makeFigure(name,small){const key=name.toLowerCase().replace("goldenfreddy","gold");
- const col=name==="GoldenFreddy"?C.gold:(C[key]||"#888");let deco="";
- if(name==="Freddy")deco='<div class="hat"></div>';
- if(name==="Bonnie")deco='<div class="ear l"></div><div class="ear r"></div>';
- if(name==="Chica")deco='<div class="beak"></div>';
- if(name==="Foxy")deco='<div class="patch"></div>';
- return `<div class="fig ${small?'sm':''}" style="--c:${col}">
-  <div class="head"><div class="eye l"></div><div class="eye r"></div>${deco}</div>
-  <div class="torso"></div><div class="fname">${name}</div></div>`;}
-function makeWindowFig(name){const key=name.toLowerCase();const col=C[key]||"#888";let deco="";
- if(name==="Bonnie")deco='<div class="wear l"></div><div class="wear r"></div>';
- if(name==="Chica")deco='<div class="wbeak"></div>';
- if(name==="Freddy")deco='<div class="what"></div>';
- if(name==="Foxy")deco='<div class="wpatch"></div>';
- return `<div class="wfig" style="--c:${col}"><div class="whead">${deco}<div class="weye l"></div><div class="weye r"></div></div></div>`;}
-function figuresIn(loc){const a=[];
- if(S.freddy.loc===loc)a.push("Freddy");if(S.bonnie.loc===loc)a.push("Bonnie");if(S.chica.loc===loc)a.push("Chica");
- if(loc==="westhall"&&S.foxy.stage===4)a.push("Foxy");
- return a;}
-function roomProps(loc){switch(loc){
- case"dining":return `<div class="prop table" style="left:15%"></div><div class="prop table" style="left:60%"></div>`;
- case"backstage":return `<div class="prop shelf" style="left:15%"></div><div class="prop shelf" style="left:55%"></div>`;
- case"westhall":case"easthall":return `<div class="prop hallLine" style="left:30%"></div><div class="prop hallLine" style="left:70%"></div>`;
- default:return"";}}
-function stageSprite(){ const fOn=S.freddy.loc==="stage",bOn=S.bonnie.loc==="stage",cOn=S.chica.loc==="stage";
- if(fOn&&bOn&&cOn)return STAGE_SPRITES.all;
- if(fOn&&!bOn&&cOn)return STAGE_SPRITES.bgone;
- if(fOn&&bOn&&!cOn)return STAGE_SPRITES.cgone;
- if(fOn&&!bOn&&!cOn)return S.freddyStare?STAGE_SPRITES.stare:STAGE_SPRITES.fonly;
- if(!fOn&&!bOn&&!cOn)return STAGE_SPRITES.empty;
- return STAGE_SPRITES.all; }
-function camContent(cam){const info=CAMS[cam];let h="";
- if(info.audio){h+=`<div class="audioOnly">AUDIO ONLY</div>`;
-  if(S.freddy.loc==="kitchen")h+=`<div class="camnote">♪ Toreador tune...</div>`;
-  if(S.chica.loc==="kitchen")h+=`<div class="camnote">(clattering pans)</div>`;return h;}
- if(cam==="1A"){ return h+`<img class="spriteCam" src="${stageSprite()}" alt="">`; }
- if(cam==="1C"){ const st=S.foxy.stage; let src;
-  if(st===0)src=COVE_SPRITES.s1;
-  else if(st===1)src=COVE_SPRITES.s2;
-  else if(st===2)src=COVE_SPRITES.s3;
-  else src=(S.foxyItsMe)?COVE_SPRITES.itsme:COVE_SPRITES.s4;
-  return h+`<img class="spriteCam" src="${src}" alt="">`; }
- if(cam==="2B"){h+=S.goldenPoster?`<div class="poster golden">GOLDEN FREDDY<br>IT'S ME</div>`:`<div class="poster">FREDDY<br>poster</div>`;
-  figuresIn("westcorner").forEach(n=>h+=makeFigure(n,false));return h;}
- h+=roomProps(info.loc);const figs=figuresIn(info.loc);
- if(!figs.length)h+=`<div class="emptyroom">EMPTY</div>`;
- figs.forEach(n=>h+=makeFigure(n,false));return h;}
-function roomSig(){ let s=S.currentCam+"|";
- if(S.currentCam==="1C") s+=S.foxy.stage+"|"+(S.foxyItsMe?1:0);
- else if(S.currentCam==="1A") s+=figuresIn("stage").join(",")+"|"+(S.freddyStare?1:0);
- else if(S.currentCam==="2B") s+=(S.goldenPoster?1:0)+"|"+figuresIn("westcorner").join(",");
- else s+=figuresIn(CAMS[S.currentCam].loc).join(",");
- return s; }
+    // Keyboard Shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (!Game.isRunning) return;
+        if (e.key === ' ') toggleMonitor();
+        if (e.key === 'q') toggleDoor('left');
+        if (e.key === 'p') toggleDoor('right');
+        if (e.key === 'w') toggleLight('left');
+        if (e.key === 'o') toggleLight('right');
+        if (e.key === 'd') {
+            UI.debugPanel.style.display = UI.debugPanel.style.display === 'none' ? 'block' : 'none';
+        }
+    });
+}
 
-function renderFrame(){const e=S.el;if(!e.time)return;
- const hrs=["12 AM","1 AM","2 AM","3 AM","4 AM","5 AM"];
- e.time.textContent=hrs[clamp(getHour(S.time),0,5)];e.night.textContent="Night "+S.night;
- e.power.textContent=Math.max(0,Math.ceil(S.power))+"%";
- const bars=Math.min(calcUsage(),4);for(let i=1;i<=4;i++)e["u"+i].className="ubar"+(i<=bars?(" on"+bars):"");
- const dark=!!S.outage; $("#office").classList.toggle("dark",dark);
- e.lPanel.className="doorPanel"+(S.leftDoor?" closed":"");e.rPanel.className="doorPanel"+(S.rightDoor?" closed":"");
- e.lDoor.disabled=dark||S.monitorUp;e.rDoor.disabled=dark||S.monitorUp;
- e.lLight.disabled=dark||S.monitorUp;e.rLight.disabled=dark||S.monitorUp;
- e.lDoor.className=S.leftJam?"jammed":(S.leftDoor?"active":"");e.rDoor.className=S.rightJam?"jammed":(S.rightDoor?"active":"");
- e.lLight.className=(S.leftLight?"active":"")+(S.leftLight&&S.lightLock.L>0?" lock":"");
- e.rLight.className=(S.rightLight?"active":"")+(S.rightLight&&S.lightLock.R>0?" lock":"");
- $("#leftDoorway").classList.toggle("lit",S.leftLight&&!dark);$("#rightDoorway").classList.toggle("lit",S.rightLight&&!dark);
- const lf=e.lFig;lf.innerHTML="";let showL=false;
- if(!S.leftDoor && S.leftLight && !dark && S.bonnie.loc==="leftdoor"){showL=true;lf.innerHTML=makeFigure("Bonnie",true);}
- if(dark&&S.outage&&S.outage.phase==="jingle"){showL=true;lf.innerHTML=makeFigure("Freddy",true);}
- lf.className="doorFig"+(showL?" on":"");
- const lw=e.lWin;
- if(S.leftDoor && S.leftLight && !dark && S.bonnie.loc==="leftdoor"){lw.className="doorWin lit";lw.innerHTML=makeWindowFig("Bonnie");}
- else{lw.className="doorWin";lw.innerHTML="";}
- const rf=e.rFig;rf.innerHTML="";let showR=false;
- if(!S.rightDoor && S.rightLight && !dark && S.chica.loc==="rightdoor"){showR=true;rf.innerHTML=makeFigure("Chica",true);}
- rf.className="doorFig"+(showR?" on":"");
- const rw=e.rWin;
- if(S.rightDoor && S.rightLight && !dark && S.chica.loc==="rightdoor"){rw.className="doorWin lit";rw.innerHTML=makeWindowFig("Chica");}
- else{rw.className="doorWin";rw.innerHTML="";}
- if((S.leftLight||S.rightLight)&&!dark)AudioSys.humOn();else AudioSys.humOff();
- AudioSys.setFan(S.started && !S.outage && !S.paused && S.monState!=="up");
- if(e.arrow){ e.arrow.classList.toggle("flip",S.monitorUp); e.arrow.style.display=dark?"none":"block"; }
- e.camOverlay.style.display=(S.monState==="up")?"block":"none";
- if(S.monState==="up"){e.camName.textContent="CAM "+S.currentCam+" — "+CAMS[S.currentCam].n;
-  const garbled=(S.garble[S.currentCam]||0)>0;
-  if(garbled||S.camStatic>0){ e.room.innerHTML=""; S.roomSig=""; }
-  else { const sig=roomSig(); if(sig!==S.roomSig){ S.roomSig=sig; e.room.innerHTML=camContent(S.currentCam); } }
-  const img=e.room.querySelector(".spriteCam");
-  if(img){ const cw=e.room.clientWidth||1; const iw=img.clientWidth||cw;
-   const panMax=Math.max(0,(iw-cw)/2);
-   const px=S.pan.x*panMax;
-   img.style.transform=`translate(calc(-50% + ${px.toFixed(1)}px), -50%)`; }
-  $("#staticCv").style.opacity= garbled? "1" : (S.camStatic>0?".9":".3");
-  document.querySelectorAll(".camBtn").forEach(b=>b.classList.toggle("sel",b.dataset.cam===S.currentCam));}
- e.golden.style.display=S.goldenOffice?"flex":"none";
- e.phone.style.display=S.phoneOn?"flex":"none";
- e.cues.innerHTML=S.cues.map(c=>`<div class="cue">${c.t}</div>`).join("");
- if(e.dbg)e.dbg.textContent=debugText();}
-function debugText(){const base=getAIRow(S.night,0);
- return `F:${S.freddy.loc} B:${S.bonnie.loc} C:${S.chica.loc} Foxy:st${S.foxy.stage} atk${S.foxy.attacks} stun${S.foxy.noMove.toFixed(1)}${S.foxy.stage===4?" RUN":""}\nbase[${base.join("/")}] cur[${S.ai.join("/")}] t:${S.time.toFixed(0)}/${T.H[6]}s pw:${S.power.toFixed(1)} garble:${(S.garble[S.currentCam]||0).toFixed(1)} stare:${S.freddyStare?1:0} pan:${S.pan.x.toFixed(2)}${S.pan.wait>0?"(hold)":""} sprites:${preloadDone?"ready":"loading"} ${S.outage?"OUTAGE":""}`;}
+// --- GAME LOGIC ---
 
-function updateGame(dt){ if(S.screen!=="game"||S.paused)return;
- if(!S.started){S.introT+=dt;if(S.introT>2.4){S.started=true;const io=$("#introOv");if(io)io.remove();
-   AudioSys.startAmbient();AudioSys.initFan();AudioSys.initLights();AudioSys.initSong();
-   if(S.night===1){setTimeout(()=>{if(S.screen==="game"){AudioSys.ring();S.phoneOn=true;setTimeout(()=>AudioSys.playPhone(),900);renderFrame();}},1500);}}
-  renderFrame();return;}
- S.time+=dt;
- if(S.time>=T.H[6]){doWin();return;}
- for(const k in S.garble){ S.garble[k]-=dt; if(S.garble[k]<=0)delete S.garble[k]; }
- if(S.lightLock.L>0)S.lightLock.L-=dt;
- if(S.lightLock.R>0)S.lightLock.R-=dt;
- if(S.outage){updateOutage(dt);if(S.screen==="game")renderFrame();return;}
- updateAISchedule();updatePower(dt);if(S.screen!=="game")return;
- if(S.outage){renderFrame();return;}
- if(S.monState==="up")updatePan(dt);
- updateGolden(dt);if(S.screen!=="game")return;
- updateFreddy(dt);updateBonnie(dt);updateChica(dt);updateFoxy(dt);if(S.screen!=="game")return;
- if(S.camStatic>0)S.camStatic-=dt;
- updateCues(dt);
- S.staticT+=dt;if(S.monState==="up"&&S.staticT>.06){S.staticT=0;drawStatic();}
- renderFrame();}
-let last=performance.now();
-function loop(now){const dt=Math.min((now-last)/1000,.1);last=now;
- if(S.screen==="game"){updateGame(dt);updateGhts(dt);}
- requestAnimationFrame(loop);}
-requestAnimationFrame(loop);
+function startGame() {
+    UI.titleScreen.style.display = 'none';
+    UI.endScreen.style.display = 'none';
+    UI.jumpscare.style.display = 'none';
+    
+    // Reset State
+    Game.night = Math.min(Game.night, 7);
+    Game.hour = 0;
+    Game.power = 100;
+    Game.usage = 1;
+    Game.isRunning = true;
+    Game.isMonitorOpen = false;
+    Game.currentCam = '1A';
+    Game.leftDoorClosed = false;
+    Game.rightDoorClosed = false;
+    Game.leftLightOn = false;
+    Game.rightLightOn = false;
+    Game.secondCounter = 0;
+    Game.aiTimer = 0;
+    Game.powerTimer = 0;
 
-function buildGameDOM(){root.innerHTML=`
-<div id="gameRoot">
- <div id="officeWrap"><div id="office">
-   <div class="doorway" id="leftDoorway"><div class="hall"></div><div class="doorFig" id="lFig"></div><div class="doorPanel" id="lPanel"><div class="doorWin" id="lWin"></div></div></div>
-   <div class="doorway" id="rightDoorway"><div class="hall"></div><div class="doorFig" id="rFig"></div><div class="doorPanel" id="rPanel"><div class="doorWin" id="rWin"></div></div></div>
-   <div class="ctrlCol" id="leftCtrls"><button id="lDoor">DOOR</button><button id="lLight">LIGHT</button></div>
-   <div class="ctrlCol" id="rightCtrls"><button id="rDoor">DOOR</button><button id="rLight">LIGHT</button></div>
- </div></div>
- <div id="camOverlay">
-   <div id="camView"><div class="roomContent" id="room"></div><canvas id="staticCv" width="160" height="90"></canvas><div class="scanlines"></div><div class="crtFlicker"></div></div>
-   <div id="camTopLeft"><span id="rec"></span><span id="camName"></span></div>
-   <div id="camMap"><div id="mapBox">
-     <svg class="plan" viewBox="0 0 900 680">
-       <g fill="none" stroke="#9aa0a6" stroke-width="2">
-         <path d="M335 88 V125"/>
-         <path d="M410 35 H548 V125"/>
-         <rect x="200" y="125" width="485" height="265"/>
-         <rect x="92" y="125" width="80" height="130"/>
-         <path d="M172 145 H200 M172 170 H200"/>
-         <rect x="122" y="285" width="78" height="90"/>
-         <rect x="188" y="450" width="74" height="128"/>
-         <path d="M262 500 H292 M262 520 H292"/>
-         <rect x="292" y="412" width="83" height="253"/>
-         <path d="M320 390 V412 M368 390 V412"/>
-         <rect x="402" y="552" width="80" height="113"/>
-         <path d="M482 610 H505"/>
-         <rect x="505" y="412" width="87" height="253"/>
-         <path d="M535 390 V412 M588 390 V412"/>
-         <rect x="618" y="412" width="164" height="128"/>
-         <path d="M630 390 V412 M655 390 V412"/>
-         <rect x="710" y="168" width="58" height="222"/>
-         <path d="M685 205 H710 M685 228 H710"/>
-         <rect x="792" y="228" width="60" height="55"/>
-         <rect x="792" y="333" width="60" height="57"/>
-       </g>
-       <text x="408" y="612" fill="#cfd4da" font-family="monospace" font-size="24" letter-spacing="2">YOU</text>
-       <rect x="430" y="622" width="15" height="15" fill="#ececec"/>
-     </svg>
-     <div id="camBtns"></div>
-   </div></div>
- </div>
- <div id="monTrans">
-  <video id="vidOpen" src="${MON_OPEN_VIDEO}" muted playsinline preload="auto"></video>
-  <video id="vidLower" src="${MON_LOWER_VIDEO}" muted playsinline preload="auto"></video>
- </div>
- <div id="camArrow"><img src="${ARROW_URL}" alt="" draggable="false"></div>
- <div id="goldenOverlay"><div class="fig" style="--c:${C.gold};width:160px;height:240px"><div class="head"><div class="eye l"></div><div class="eye r"></div></div><div class="torso"></div></div><div class="itsme">IT'S ME</div></div>
- <div id="jumpOv"><div class="jfig" id="jfig"></div></div><div id="flash"></div>
- <div id="phoneUI"><div class="icon"></div><span>Phone call...</span><button id="phoneMute">Mute</button></div>
- <div id="hud"><div id="timeLbl"></div><div id="nightLbl"></div></div>
- <div id="powerBox"><div id="powerPct"></div><div class="usageBars"><div class="ubar" id="u1"></div><div class="ubar" id="u2"></div><div class="ubar" id="u3"></div><div class="ubar" id="u4"></div></div></div>
- <div id="cues"></div>
- <button id="debugBtn">DEBUG</button>
- <div id="debugPanel"><pre id="dbg"></pre><div class="row">
-   <button data-d="hour">+1hr</button><button data-d="pw">Pw=50</button><button data-d="fb">Freddy→4B</button>
-   <button data-d="bl">Bonnie→L</button><button data-d="cr">Chica→R</button><button data-d="fr">Foxy run</button>
-   <button data-d="out">Outage</button><button data-d="unlock">Unlock</button><button data-d="time">Time:WIKI</button></div></div>
- <div class="pauseOv" id="pauseOv"><h2>PAUSED</h2><button id="resumeBtn">Resume</button></div>
-</div>`;
- const g=id=>document.getElementById(id);
- S.el={time:g("timeLbl"),night:g("nightLbl"),power:g("powerPct"),u1:g("u1"),u2:g("u2"),u3:g("u3"),u4:g("u4"),
-  lPanel:g("lPanel"),rPanel:g("rPanel"),lFig:g("lFig"),rFig:g("rFig"),lWin:g("lWin"),rWin:g("rWin"),
-  lDoor:g("lDoor"),rDoor:g("rDoor"),lLight:g("lLight"),rLight:g("rLight"),
-  camOverlay:g("camOverlay"),camName:g("camName"),room:g("room"),arrow:g("camArrow"),
-  golden:g("goldenOverlay"),cues:g("cues"),dbg:g("dbg"),phone:g("phoneUI")};
- const vo=g("vidOpen"), vl=g("vidLower");
- vo.addEventListener("ended",()=>{ if(S.monState==="opening") finishTrans(); });
- vl.addEventListener("ended",()=>{ if(S.monState==="closing") finishTrans(); });
- vo.addEventListener("error",()=>{ if(S.monState==="opening") setTimeout(finishTrans,300); });
- vl.addEventListener("error",()=>{ if(S.monState==="closing") setTimeout(finishTrans,300); });
- [vo,vl].forEach(v=>{ const p=v.play(); if(p) p.then(()=>{ v.pause(); try{v.currentTime=0;}catch(e){} }).catch(()=>{}); });
- const cb=g("camBtns");
- CAM_KEYS.forEach(k=>{const b=document.createElement("button");b.className="camBtn";b.dataset.cam=k;
-  b.innerHTML="CAM<br>"+k;
-  const p=MAP_POS[k]; b.style.left=p[0]+"%"; b.style.top=p[1]+"%";
-  b.onclick=()=>{ if(S.outage||S.monState!=="up")return; S.currentCam=k; S.camStatic=.35; S.roomSig=""; markAction();
-   AudioSys.monStopKey("ds"); AudioSys.monPlay("ds",0);
-   if((S.garble[k]||0)>0)AudioSys.playGarble();
-   renderFrame(); };
-  cb.appendChild(b);});
- g("lDoor").onclick=()=>toggleDoor("L");g("rDoor").onclick=()=>toggleDoor("R");
- g("lLight").onclick=()=>toggleLight("L");g("rLight").onclick=()=>toggleLight("R");
- const arrow=g("camArrow");
- const arrowToggle=()=>{ if(S.screen!=="game"||!S.started||S.paused||S.outage)return;
-  if(S.monState==="office")raiseMonitor();
-  else if(S.monState==="up")lowerMonitor();
-  else if(S.monState==="opening")lowerMonitor();
-  else if(S.monState==="closing")raiseMonitor(); };
- arrow.addEventListener("mouseenter",arrowToggle);
- arrow.addEventListener("click",arrowToggle);
- g("phoneMute").onclick=()=>{AudioSys.stopPhone();S.phoneOn=false;renderFrame();};
- g("debugBtn").onclick=()=>g("debugPanel").classList.toggle("open");
- document.querySelectorAll("#debugPanel [data-d]").forEach(b=>b.onclick=()=>{const d=b.dataset.d;
-  if(d==="hour")S.time=Math.min(S.time+T.H[1],T.H[6]-1);if(d==="pw")S.power=50;
-  if(d==="fb"){S.freddy.loc="eastcorner";S.ai[0]=Math.max(S.ai[0],1);}
-  if(d==="bl"){S.bonnie.loc="leftdoor";S.ai[1]=Math.max(S.ai[1],1);}
-  if(d==="cr"){S.chica.loc="rightdoor";S.ai[2]=Math.max(S.ai[2],1);}
-  if(d==="fr")startFoxyRun();if(d==="out"){S.power=0;}if(d==="unlock"){S.unlocked=7;saveProg();}
-  if(d==="time"){T=(T===TIMINGS.wiki)?TIMINGS.decomp:TIMINGS.wiki;b.textContent="Time:"+(T===TIMINGS.wiki?"WIKI":"DECOMP");}
-  renderFrame();});
- g("resumeBtn").onclick=()=>{S.paused=false;g("pauseOv").style.display="none";};
- const off=g("office");
- g("officeWrap").addEventListener("mousemove",ev=>{const r=root.getBoundingClientRect();const x=(ev.clientX-r.left)/r.width;
-  off.style.transform=`translateX(${(0.5-x)*3.5}%)`;});
- window.addEventListener("blur",()=>{if(S.screen==="game"&&S.started){S.paused=true;g("pauseOv").style.display="flex";}});
- const io=document.createElement("div");io.className="introOv";io.id="introOv";
- io.innerHTML=`<div class="introNight">Night ${S.night}</div><div class="introTime">12:00 AM</div>`;
- g("gameRoot").appendChild(io);}
+    // Reset Animatronics
+    const settings = DIFFICULTY_SETTINGS[Game.night - 1];
+    Game.animatronics.freddy = { location: '1A', level: settings.freddy, moveTimer: 0 };
+    Game.animatronics.bonnie = { location: '1A', level: settings.bonnie, moveTimer: 0 };
+    Game.animatronics.chica = { location: '1A', level: settings.chica, moveTimer: 0 };
+    Game.animatronics.foxy = { location: '1C', level: settings.foxy, stage: 0, moveTimer: 0 };
 
-function buildJumpscare(who,reason){const jo=$("#jumpOv");const jf=$("#jfig");
- jf.innerHTML=makeFigure(who==="GoldenFreddy"?"GoldenFreddy":who,false);jo.style.display="flex";
- const fl=$("#flash");fl.style.transition="none";fl.style.opacity=".8";
- setTimeout(()=>{fl.style.transition="opacity .4s";fl.style.opacity="0";},60);
- $("#gameRoot").classList.add("shake");
- setTimeout(()=>{$("#gameRoot").classList.remove("shake");},500);
- setTimeout(()=>{jo.style.display="none";
-  if(who==="GoldenFreddy")buildOver(reason,true);else buildOver(reason,false);},950);}
+    updateOfficeVisuals();
+    updateHUD();
+    renderCamera();
+    
+    // Start Loop
+    if (Game.gameLoopId) cancelAnimationFrame(Game.gameLoopId);
+    gameLoop();
 
-function startGame(n){freshState();S.night=n;S.screen="game";
- if(n===4)S.night4Freddy=rint(1,2);
- if(n===7&&S.customAI.join("/")==="1/9/8/7"){buildGameDOM();renderFrame();triggerJumpscare("GoldenFreddy","CRASH");return;}
- const T = DIFF[n]; updateAISchedule();buildGameDOM();
- AudioSys.init();AudioSys.resume();AudioSys.monLoad();AudioSys.garbleLoad();AudioSys.initSong();preloadAllImages();
- renderFrame();}
+    // Play Phone Call (Simulated)
+    setTimeout(() => {
+        if(Game.isRunning) showPhoneCall("Night " + Game.night);
+    }, 2000);
+}
 
-function showTitle(){S.screen="title";AudioSys.stopPhone();AudioSys.stopFan();AudioSys.stopLights();
- preloadAllImages();
- root.innerHTML=`<div class="screen"><h1>FIVE NIGHTS</h1><div class="sub">survival sim — fan mechanics demo</div>
-  <div class="menu"><button id="cont">Continue (Night ${Math.min(S.unlocked,7)})</button>
-  <button id="newg">New Game</button><button id="nsel">Night Select</button>
-  <button id="cust">Custom Night</button><button id="instr">Instructions</button></div>
-  <div class="small" id="loadStatus">${preloadDone?"sprites ready":"loading sprites…"}</div></div>`;
- $("#cont").onclick=()=>startGame(Math.min(S.unlocked,7));
- $("#newg").onclick=()=>{S.unlocked=1;saveProg();startGame(1);};
- $("#nsel").onclick=showNightSelect;$("#cust").onclick=showCustom;$("#instr").onclick=showInstructions;}
-function showNightSelect(){S.screen="select";let b="";
- for(let i=1;i<=6;i++){const u=i<=S.unlocked;b+=`<button data-n="${i}" ${u?"":"disabled"}>Night ${i}${u?"":" 🔒"}</button>`;}
- const u7=7<=S.unlocked;b+=`<button data-n="7" ${u7?"":"disabled"}>Custom${u7?"":" 🔒"}</button>`;
- root.innerHTML=`<div class="screen"><h1>NIGHT SELECT</h1><div class="grid">${b}</div><button id="back">Back</button></div>`;
- root.querySelectorAll("[data-n]").forEach(x=>x.onclick=()=>startGame(+x.dataset.n));$("#back").onclick=showTitle;}
-function showCustom(){S.screen="custom";const names=["Freddy","Bonnie","Chica","Foxy"];let sl="";
- names.forEach((nm,i)=>{sl+=`<div style="display:flex;gap:10px;align-items:center;margin:6px 0">
-  <span style="width:80px">${nm}</span><input type="range" min="0" max="20" value="${S.customAI[i]}" data-i="${i}"><b class="val">${S.customAI[i]}</b></div>`;});
- root.innerHTML=`<div class="screen"><h1>CUSTOM NIGHT</h1><div class="card">${sl}
-  <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
-   <button data-p="0/0/0/0">0/0/0/0</button><button data-p="1/3/3/1">1/3/3/1</button>
-   <button data-p="20/20/20/20">20/20/20/20</button><button data-p="1/9/8/7" style="color:#f66">1/9/8/7 ⚠</button></div></div>
-  <button id="startc">Start Custom Night</button><button id="backc">Back</button></div>`;
- root.querySelectorAll("input[type=range]").forEach(r=>r.oninput=()=>{S.customAI[+r.dataset.i]=+r.value;r.parentElement.querySelector(".val").textContent=r.value;});
- root.querySelectorAll("[data-p]").forEach(x=>x.onclick=()=>{const v=x.dataset.p.split("/").map(Number);S.customAI=v;
-  root.querySelectorAll("input[type=range]").forEach((r,i)=>{r.value=v[i];r.parentElement.querySelector(".val").textContent=v[i];});});
- $("#startc").onclick=()=>startGame(7);$("#backc").onclick=showTitle;}
-function showInstructions(){S.screen="instr";
- root.innerHTML=`<div class="screen"><h1>HOW TO SURVIVE</h1><div class="card">
-  <b>Goal:</b> survive 12AM–6AM. Doors, lights, cameras all drain power.<br>
-  <b>Monitor:</b> hover the arrow. Opening it kills your hall lights. You can flip mid-animation.<br>
-  <b>Lights:</b> only one light at a time; 10% chance a light flickers and won't switch off for 0.5s.<br>
-  <b>View Disturbed:</b> when an animatronic moves, the cam it left AND the cam it entered garble for 5s.<br>
-  <b>Timing:</b> wiki 535s or decomp 516s — toggle in DEBUG.<br><br>
-  <b>Bonnie</b> roams the left side — flash the left light, shut the left door.<br>
-  <b>Chica</b> roams the right side — flash the right light, shut the right door.<br>
-  <b>Foxy</b> hides in Pirate Cove. ANY camera stalls him; quick monitor flips re-roll his stun. At an empty cove, checking CAM 2A makes him sprint — shut the left door. His knocks drain 1/6/11...%.<br>
-  <b>Freddy</b> is camera-shy. When he reaches CAM 4B, keep watching 4B to freeze him; if you look away, close the right door.<br>
-  <b>Golden Freddy:</b> if the CAM 2B poster turns golden, raise the monitor FAST.<br><br>
-  <b>Door windows:</b> close a door, then hit the light — you'll see who's outside through the door's window.<br>
-  <b>Jammed doors</b> stay open — you die the next time you lower the monitor.<br>
-  If power hits 0, Freddy plays his song in the dark. Only 6AM saves you.</div>
-  <button id="backi">Back</button></div>`;$("#backi").onclick=showTitle;}
-function showWinScreen(){S.screen="win";
- root.innerHTML=`<div class="screen"><h1 style="color:#9f9;text-shadow:0 0 20px #4f4">6:00 AM</h1>
-  <div class="sub">Night ${S.night} complete</div>
-  <div class="menu"><button id="cont2">Continue</button><button id="ts">Title</button></div></div>`;
- $("#cont2").onclick=()=>startGame(Math.min(S.night+1,7));$("#ts").onclick=showTitle;}
-function showEnding(){S.screen="ending";
- root.innerHTML=`<div class="screen"><h1 style="color:#9f9">6:00 AM</h1>
-  <div class="card">You made it through the whole week. The building goes quiet... for now.
-  A harder shift and a strange custom console have been unlocked.</div>
-  <div class="menu"><button id="cn">Custom Night</button><button id="ts2">Title</button></div></div>`;
- $("#cn").onclick=showCustom;$("#ts2").onclick=showTitle;}
-function showPinkSlip(){S.screen="pink";
- root.innerHTML=`<div class="screen" style="background:#2a1216"><div class="card" style="background:#e8b4bc;color:#40121a;border:none">
-  <h2>NOTICE OF TERMINATION</h2><p>Reasons cited: tampering with the animatronics, general unprofessionalism, and odor.</p>
-  <p><i>(Original placeholder text.)</i></p></div><button id="ts3">Title</button></div>`;$("#ts3").onclick=showTitle;}
-function buildOver(reason,isCrash){S.screen="over";
- if(isCrash){root.innerHTML=`<div class="screen crashScreen"><div class="itsme">IT'S ME</div>
-  <h1 style="color:#f44">CRASH</h1><div class="sub">Golden Freddy</div>
-  <div class="menu"><button id="rt">Title</button></div></div>`;}
- else{root.innerHTML=`<div class="screen"><h1 style="color:#f44;text-shadow:0 0 20px #f00">GAME OVER</h1>
-  <div class="sub">${reason}</div>
-  <div class="menu"><button id="rt2">Retry Night ${S.night}</button><button id="rt3">Title</button></div></div>`;
-  $("#rt2").onclick=()=>startGame(S.night);}
- ($("#rt")||$("#rt3")).onclick=showTitle;}
+function gameLoop() {
+    if (!Game.isRunning) return;
 
-freshState();
-preloadAllImages();
-showTitle();
+    // Time Progression (1 hour every ~45 seconds real time)
+    Game.secondCounter++;
+    if (Game.secondCounter % 60 === 0) { // Approximate seconds
+        Game.hour = (Game.hour + 1) % 12;
+        if (Game.hour === 0) Game.hour = 12; // Fix 0 to 12 for display
+        
+        updateTimeDisplay();
+        
+        if (Game.hour === 6) {
+            winGame();
+            return;
+        }
+        
+        // Increase difficulty slightly as night progresses
+        increaseDifficulty();
+    }
+
+    // AI Logic (Run every few frames)
+    Game.aiTimer++;
+    if (Game.aiTimer > 100) { // Adjust speed based on FPS
+        updateAI();
+        Game.aiTimer = 0;
+    }
+
+    // Power Drain
+    Game.powerTimer++;
+    if (Game.powerTimer > 60) { // Drain every second approx
+        drainPower();
+        Game.powerTimer = 0;
+    }
+
+    // Foxy Logic (Special case)
+    updateFoxy();
+
+    // Render
+    if (Game.isMonitorOpen) {
+        renderCamera();
+    } else {
+        checkDoorThreats();
+    }
+
+    updateDebug();
+
+    Game.gameLoopId = requestAnimationFrame(gameLoop);
+}
+
+function increaseDifficulty() {
+    // Optional: Ramp up AI levels mid-night
+    const ramp = Math.floor(Game.hour / 2);
+    Object.keys(Game.animatronics).forEach(key => {
+        if (key !== 'foxy') {
+            Game.animatronics[key].level = Math.min(20, DIFFICULTY_SETTINGS[Game.night-1][key] + ramp);
+        }
+    });
+}
+
+function updateAI() {
+    const settings = DIFFICULTY_SETTINGS[Game.night - 1];
+    
+    // Bonnie
+    if (Math.random() * 20 < settings.bonnie) moveAnimatronic('bonnie', ['1A', '1B', '2A', '2B', 'office-left']);
+    
+    // Chica
+    if (Math.random() * 20 < settings.chica) moveAnimatronic('chica', ['1A', '1B', '3A', '3B', 'office-right']);
+    
+    // Freddy
+    if (Math.random() * 20 < settings.freddy) moveAnimatronic('freddy', ['1A', '1B', '3A', '4A', 'office-right']);
+    
+    // Foxy handled separately
+}
+
+function moveAnimatronic(name, path) {
+    const anim = Game.animatronics[name];
+    const currentIdx = path.indexOf(anim.location);
+    
+    if (currentIdx === -1) {
+        // Reset if lost
+        anim.location = '1A';
+        return;
+    }
+
+    // Move forward
+    if (currentIdx < path.length - 1) {
+        anim.location = path[currentIdx + 1];
+        
+        // If entering office doorway
+        if (anim.location.includes('office')) {
+            // Check if door is closed
+            const side = anim.location.includes('left') ? 'left' : 'right';
+            if ((side === 'left' && Game.leftDoorClosed) || (side === 'right' && Game.rightDoorClosed)) {
+                // Blocked, return to start of hall
+                anim.location = path[1]; 
+                AudioSys.playSound('thud', 'one-shot'); // Placeholder sound logic
+            } else {
+                // Enter office (Kill player eventually)
+                // For now, they just hang out in the door until light checked
+            }
+        }
+    } else {
+        // At office, chance to attack
+        if (Math.random() < 0.3) {
+            triggerJumpscare(name);
+        } else {
+            // Retreat
+            anim.location = '1A';
+        }
+    }
+}
+
+function updateFoxy() {
+    const foxy = Game.animatronics.foxy;
+    
+    // Foxy moves when not looked at
+    if (Game.isMonitorOpen && Game.currentCam === '1C') {
+        foxy.moveTimer = 0; // Reset if watching
+    } else {
+        foxy.moveTimer++;
+        if (foxy.moveTimer > (200 - foxy.level * 5)) {
+            foxy.stage++;
+            foxy.moveTimer = 0;
+            if (foxy.stage > 3) {
+                // Attack!
+                if (!Game.leftDoorClosed) {
+                    triggerJumpscare('foxy');
+                } else {
+                    // Blocked by door
+                    foxy.stage = 0;
+                    foxy.location = '1C';
+                    AudioSys.playSound('bang', 'one-shot');
+                    drainPower(5); // Penalty for banging
+                }
+            }
+        }
+    }
+}
+
+function checkDoorThreats() {
+    // Check Left Door
+    if (Game.animatronics.bonnie.location === 'office-left') {
+        UI.monsterLeft.style.backgroundImage = getMonsterSprite('bonnie');
+        UI.monsterLeft.style.display = 'block';
+    } else {
+        UI.monsterLeft.style.display = 'none';
+    }
+
+    // Check Right Door
+    if (Game.animatronics.chica.location === 'office-right') {
+        UI.monsterRight.style.backgroundImage = getMonsterSprite('chica');
+        UI.monsterRight.style.display = 'block';
+    } else if (Game.animatronics.freddy.location === 'office-right') {
+        // Freddy only visible in light if close
+        UI.monsterRight.style.backgroundImage = getMonsterSprite('freddy');
+        UI.monsterRight.style.display = 'block';
+    } else {
+        UI.monsterRight.style.display = 'none';
+    }
+}
+
+function getMonsterSprite(name) {
+    // Procedural placeholders using CSS gradients/colors
+    if (name === 'bonnie') return 'radial-gradient(circle, #a8f, #44a)';
+    if (name === 'chica') return 'radial-gradient(circle, #ff8, #aa4)';
+    if (name === 'freddy') return 'radial-gradient(circle, #853, #421)';
+    if (name === 'foxy') return 'radial-gradient(circle, #f44, #811)';
+    return 'none';
+}
+
+function drainPower(amount = 1) {
+    // Base drain + usage
+    let drainRate = 0.1 + (Game.usage * 0.15);
+    Game.power -= drainRate;
+    
+    if (Game.power <= 0) {
+        Game.power = 0;
+        powerOutage();
+    }
+    updateHUD();
+}
+
+function powerOutage() {
+    Game.isRunning = false;
+    UI.officeBg.style.filter = 'brightness(0.1)';
+    UI.doorLeft.classList.remove('closed');
+    UI.doorRight.classList.remove('closed');
+    UI.lightLeft.classList.remove('light-on');
+    UI.lightRight.classList.remove('light-on');
+    
+    // Freddy plays music then jumpscare
+    setTimeout(() => {
+        triggerJumpscare('freddy');
+    }, 5000);
+}
+
+function triggerJumpscare(who) {
+    if (!Game.isRunning && Game.power <= 0 && who !== 'freddy') return; // Already dead
+    
+    Game.isRunning = false;
+    AudioSys.playSound('scream', 'one-shot'); // Placeholder
+    
+    UI.jumpscareImg.style.background = getMonsterSprite(who);
+    UI.jumpscareImg.style.width = '300px';
+    UI.jumpscareImg.style.height = '300px';
+    UI.jumpscareImg.style.borderRadius = '50%';
+    
+    UI.jumpscare.style.display = 'flex';
+    
+    setTimeout(() => {
+        UI.jumpscare.style.display = 'none';
+        gameOver();
+    }, 2000);
+}
+
+function gameOver() {
+    UI.endTitle.textContent = "GAME OVER";
+    UI.endTitle.style.color = "#f00";
+    UI.endMsg.textContent = "The animatronics got you.";
+    UI.endScreen.style.display = 'flex';
+}
+
+function winGame() {
+    Game.isRunning = false;
+    UI.endTitle.textContent = "6:00 AM";
+    UI.endTitle.style.color = "#0f0";
+    UI.endMsg.textContent = "You survived Night " + Game.night;
+    UI.endScreen.style.display = 'flex';
+    Game.night++; // Prepare for next night
+}
+
+// --- CONTROLS ---
+
+function toggleDoor(side) {
+    if (Game.power <= 0 || !Game.isRunning) return;
+    
+    const isLeft = side === 'left';
+    if (isLeft) {
+        Game.leftDoorClosed = !Game.leftDoorClosed;
+        UI.doorLeft.classList.toggle('closed', Game.leftDoorClosed);
+        UI.btnDoorLeft.classList.toggle('active', Game.leftDoorClosed);
+        AudioSys.playSound('click');
+    } else {
+        Game.rightDoorClosed = !Game.rightDoorClosed;
+        UI.doorRight.classList.toggle('closed', Game.rightDoorClosed);
+        UI.btnDoorRight.classList.toggle('active', Game.rightDoorClosed);
+        AudioSys.playSound('click');
+    }
+    calculateUsage();
+}
+
+function toggleLight(side) {
+    if (Game.power <= 0 || !Game.isRunning) return;
+    
+    // Turn off other light first (can't have both on usually in FNAF1)
+    if (side === 'left') {
+        if (Game.leftLightOn) {
+            Game.leftLightOn = false;
+            UI.lightLeft.classList.remove('light-on');
+            UI.btnLightLeft.classList.remove('active');
+        } else {
+            Game.leftLightOn = true;
+            Game.rightLightOn = false;
+            UI.lightLeft.classList.add('light-on');
+            UI.lightRight.classList.remove('light-on');
+            UI.btnLightLeft.classList.add('active');
+            UI.btnLightRight.classList.remove('active');
+            
+            // Check monster
+            if (Game.animatronics.bonnie.location === 'office-left') {
+                UI.monsterLeft.style.display = 'block';
+                AudioSys.playSound('reveal');
+            }
+        }
+    } else {
+        if (Game.rightLightOn) {
+            Game.rightLightOn = false;
+            UI.lightRight.classList.remove('light-on');
+            UI.btnLightRight.classList.remove('active');
+        } else {
+            Game.rightLightOn = true;
+            Game.leftLightOn = false;
+            UI.lightRight.classList.add('light-on');
+            UI.lightLeft.classList.remove('light-on');
+            UI.btnLightRight.classList.add('active');
+            UI.btnLightLeft.classList.remove('active');
+
+            // Check monster
+            if (Game.animatronics.chica.location === 'office-right' || Game.animatronics.freddy.location === 'office-right') {
+                UI.monsterRight.style.display = 'block';
+                AudioSys.playSound('reveal');
+            }
+        }
+    }
+    calculateUsage();
+}
+
+function toggleMonitor() {
+    if (Game.power <= 0) return;
+    
+    Game.isMonitorOpen = !Game.isMonitorOpen;
+    UI.cameraScreen.style.display = Game.isMonitorOpen ? 'flex' : 'none';
+    UI.monitorBtn.textContent = Game.isMonitorOpen ? 'CLOSE MONITOR' : 'OPEN MONITOR';
+    
+    if (Game.isMonitorOpen) {
+        AudioSys.playSound('static', 'loop');
+        renderCamera();
+    } else {
+        // Stop static sound logic would go here
+    }
+}
+
+function switchCamera(camId) {
+    if (!Game.isMonitorOpen) return;
+    Game.currentCam = camId;
+    
+    // Update buttons
+    document.querySelectorAll('.cam-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.id === camId);
+    });
+    
+    AudioSys.playSound('click');
+    AudioSys.playGarble();
+    renderCamera();
+}
+
+function renderCamera() {
+    const cam = CAMERAS.find(c => c.id === Game.currentCam);
+    if (!cam) return;
+
+    UI.camName.textContent = `${cam.id}: ${cam.name}`;
+    
+    // Simulate camera feed with colored background and dots for animatronics
+    const color = CAM_COLORS[cam.id] || '#111';
+    UI.camImage.style.background = color;
+    UI.camImage.src = ''; // Clear real image
+    
+    // Draw animatronics on canvas or div overlay
+    // Simplified: Just text for now or simple dots
+    let content = `<div style="color:#0f0; font-family:monospace; text-align:center;">
+        <h2>${cam.name}</h2>
+        <p>CAM ${cam.id}</p>
+        <div style="margin-top:20px; font-size:12px; color:#fff;">`;
+    
+    // List who is here
+    const present = [];
+    Object.keys(Game.animatronics).forEach(key => {
+        if (Game.animatronics[key].location === cam.id) {
+            present.push(key.toUpperCase());
+        }
+        // Foxy special case
+        if (key === 'foxy' && cam.id === '1C') {
+             content += `<div style="color:${Game.animatronics.foxy.stage > 0 ? 'red' : 'green'}">
+                FOXY STATUS: ${['HIDDEN', 'PEEKING', 'OUT', 'RUNNING'][Game.animatronics.foxy.stage]}
+             </div>`;
+        }
+    });
+    
+    if (present.length > 0) {
+        content += `DETECTED: ${present.join(', ')}`;
+    } else {
+        content += `NO MOVEMENT DETECTED`;
+    }
+    
+    content += `</div></div>`;
+    
+    // Create a temporary canvas or use innerHTML on a container inside camImage
+    // Since camImage is an <img>, let's put an overlay div instead
+    let overlay = document.getElementById('cam-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'cam-overlay';
+        overlay.style.position = 'absolute';
+        overlay.style.top = '0'; overlay.style.left = '0';
+        overlay.style.width = '100%'; overlay.style.height = '100%';
+        overlay.style.pointerEvents = 'none';
+        UI.camImage.parentElement.appendChild(overlay);
+    }
+    overlay.innerHTML = content;
+    overlay.style.background = color;
+}
+
+function calculateUsage() {
+    let usage = 1; // Base (fan)
+    if (Game.leftDoorClosed) usage++;
+    if (Game.rightDoorClosed) usage++;
+    if (Game.leftLightOn) usage++;
+    if (Game.rightLightOn) usage++;
+    if (Game.isMonitorOpen) usage++;
+    
+    Game.usage = usage;
+    
+    // Visual bar
+    const colors = ['#0f0', '#0f0', '#ff0', '#f80', '#f00'];
+    const idx = Math.min(usage, 4);
+    UI.usageFill.style.width = (usage * 20) + '%';
+    UI.usageFill.style.background = colors[idx];
+    
+    updateHUD();
+}
+
+function updateOfficeVisuals() {
+    // Update classes based on state
+    UI.doorLeft.classList.toggle('closed', Game.leftDoorClosed);
+    UI.doorRight.classList.toggle('closed', Game.rightDoorClosed);
+    
+    UI.btnDoorLeft.classList.toggle('active', Game.leftDoorClosed);
+    UI.btnDoorRight.classList.toggle('active', Game.rightDoorClosed);
+    
+    UI.lightLeft.classList.toggle('light-on', Game.leftLightOn);
+    UI.lightRight.classList.toggle('light-on', Game.rightLightOn);
+    
+    UI.btnLightLeft.classList.toggle('active', Game.leftLightOn);
+    UI.btnLightRight.classList.toggle('active', Game.rightLightOn);
+}
+
+function updateHUD() {
+    UI.powerVal.textContent = Math.floor(Game.power);
+    UI.usageVal.textContent = Game.usage;
+    
+    if (Game.power < 20) UI.powerVal.style.color = '#f00';
+    else UI.powerVal.style.color = '#fff';
+}
+
+function updateTimeDisplay() {
+    const h = Game.hour === 0 ? 12 : Game.hour;
+    UI.timeDisplay.textContent = `${h} AM`;
+}
+
+function showPhoneCall(nightName) {
+    UI.phoneGuy.style.display = 'flex';
+    document.getElementById('phone-text').textContent = `Uh, hello? Hello hello? Welcome to your new summer job at Freddy Fazbear's Pizza. This is Night ${nightName}. Good luck!`;
+    
+    setTimeout(() => {
+        UI.phoneGuy.style.display = 'none';
+    }, 8000);
+}
+
+function updateDebug() {
+    if (UI.debugPanel.style.display === 'block') {
+        UI.debugPanel.innerHTML = `
+            Night: ${Game.night}<br>
+            Hour: ${Game.hour}<br>
+            Power: ${Game.power.toFixed(1)}%<br>
+            Usage: ${Game.usage}<br>
+            Cam: ${Game.currentCam}<br>
+            Bonnie: ${Game.animatronics.bonnie.location}<br>
+            Chica: ${Game.animatronics.chica.location}<br>
+            Foxy: ${Game.animatronics.foxy.stage}<br>
+            FPS: 60
+        `;
+    }
+}
+
+// Start
+window.onload = init;
+
 </script>
 </body>
 </html>

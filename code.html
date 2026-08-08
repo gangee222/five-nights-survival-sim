@@ -2277,7 +2277,7 @@ function startGame(n){freshState();S.night=n;S.screen="game";
  AudioSys.init();AudioSys.resume();AudioSys.monLoad();AudioSys.garbleLoad();AudioSys.initSong();preloadAllImages();
  renderFrame();}
 
-function showTitle(){S.screen="title";AudioSys.stopPhone();AudioSys.stopFan();AudioSys.stopGhts();
+function showTitle(){S.screen="title";AudioSys.stopPhone();AudioSys.stopFan();AudioSys.stopLights();
  preloadAllImages();
  root.innerHTML=`<div class="screen"><h1>FIVE NIGHTS</h1><div class="sub">survival sim — fan mechanics demo</div>
   <div class="menu"><button id="cont">Continue (Night ${Math.min(S.unlocked,7)})</button>

@@ -1,5 +1,1 @@
-(code.html is a source file, so no need to add anything to .gitignore)
-
-```gitignore
-
-```
+(code.html is a source file, so no files in the changes need to be ignored)

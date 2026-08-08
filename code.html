@@ -1781,7 +1781,7 @@ function playTrans(which,startAt){
  clearTimeout(transFallback);
  transFallback=setTimeout(()=>{ if(S.monState==="opening"||S.monState==="closing") finishTrans(); },8000); }
 function finishTrans(){ clearTimeout(transFallback); hideTrans();
- if(S.monState==="opening"){ S.monState="up"; S.camStatic=0; AU.monPlay("ds",0); rollStare(); }
+ if(S.monState==="opening"){ S.monState="up"; S.camStatic=0; AudioSys.monPlay("ds",0); rollStare(); }
  else if(S.monState==="closing"){ S.monState="office"; S.monitorUp=false;
   if(S.goldenPoster){S.goldenOffice=true;S.goldenTimer=2;S.goldenPoster=false;} }
  renderFrame(); }
@@ -1800,7 +1800,7 @@ function raiseMonitor(){ if(S.screen!=="game"||S.outage||S.monState==="up")retur
  S.monState="opening"; S.monitorUp=true; markAction();
  killLights();
  rollItsMe();
- AU.monStop(); AU.monPlay("oc",0);
+ AudioSys.monStop(); AudioSys.monPlay("oc",0);
  playTrans("raise",at);
  renderFrame(); }
 function lowerMonitor(){ if(S.screen!=="game"||S.outage||S.monState==="office")return;
@@ -1811,7 +1811,7 @@ function lowerMonitor(){ if(S.screen!=="game"||S.outage||S.monState==="office")r
  S.monState="closing"; markAction();
  S.foxy.noMove=rnd(0.83,17.5);
  S.foxyItsMe=false;
- AU.monStop(); AU.monPlay("oc",500);
+ AudioSys.monStop(); AudioSys.monPlay("oc",500);
  playTrans("lower",at);
  renderFrame(); }
 
@@ -1869,9 +1869,9 @@ function updateCues(dt){S.cues.forEach(c=>c.life-=dt);S.cues=S.cues.filter(c=>c.
 function onAnimMove(from,to){ const cams=new Set();
  const a=ROOM_TO_CAM[from]; if(a)cams.add(a);
  const b=ROOM_TO_CAM[to]; if(b)cams.add(b);
- cams.forEach(cm=>{ S.garble[cm]=GARBLE_DUR; if(S.monitorUp&&S.currentCam===cm)AU.playGarble(); }); }
+ cams.forEach(cm=>{ S.garble[cm]=GARBLE_DUR; if(S.monitorUp&&S.currentCam===cm)AudioSys.playGarble(); }); }
 function tryPanSound(){ if(S.time-S.lastPanSnd<PAN_COOLDOWN)return;
- if(Math.random()<PAN_CHANCE){ AU.playPan(); S.lastPanSnd=S.time; } }
+ if(Math.random()<PAN_CHANCE){ AudioSys.playPan(); S.lastPanSnd=S.time; } }
 
 function updatePan(dt){ const p=S.pan;
  const sprite=(S.monitorUp&&(S.currentCam==="1C"||S.currentCam==="1A"));
@@ -1904,20 +1904,20 @@ function ghtsTarget(){
   return [0,.3,.5,.75][t];
 }
 function updateGhts(dt){
-  if(!AU.ghtsEl) return;
+  if(!AudioSys.ghtsEl) return;
   const active=(S.screen==="game"&&S.started&&!S.paused);
   const target=active?ghtsTarget():0;
-  const v=AU.ghtsEl.volume;
-  AU.ghtsEl.volume=clamp(v+(target-v)*Math.min(1,dt*6),0,1);
+  const v=AudioSys.ghtsEl.volume;
+  AudioSys.ghtsEl.volume=clamp(v+(target-v)*Math.min(1,dt*6),0,1);
 }
 
 function freddyAdvance(){const f=S.freddy;
  if(f.loc==="stage"&&(S.bonnie.loc==="stage"||S.chica.loc==="stage")){addCue("Freddy waits on stage...");return;}
  const i=FREDDY_PATH.indexOf(f.loc);
- if(i>=0&&i<FREDDY_PATH.length-1){const from=f.loc;f.loc=FREDDY_PATH[i+1];addCue("Freddy laughs (moved)");AU.laugh();onAnimMove(from,f.loc);
+ if(i>=0&&i<FREDDY_PATH.length-1){const from=f.loc;f.loc=FREDDY_PATH[i+1];addCue("Freddy laughs (moved)");AudioSys.laugh();onAnimMove(from,f.loc);
   if(f.loc==="kitchen")addCue("♪ Toreador tune (Kitchen)");} }
 function freddyPhase2(){ if(S.monitorUp&&S.currentCam==="4B")return;
- if(S.monitorUp){ if(S.rightDoor&&!S.rightJam){const from=S.freddy.loc;S.freddy.loc="easthall";addCue("Freddy blocked → 4A");AU.click(false);onAnimMove(from,"easthall");}
+ if(S.monitorUp){ if(S.rightDoor&&!S.rightJam){const from=S.freddy.loc;S.freddy.loc="easthall";addCue("Freddy blocked → 4A");AudioSys.click(false);onAnimMove(from,"easthall");}
   else{const from=S.freddy.loc;S.freddy.loc="office";S.pendingKill={who:"Freddy"};addCue("Freddy slips into the office...");onAnimMove(from,"office");} } }
 function updateFreddy(dt){const f=S.freddy,ai=S.ai[0];if(f.loc==="office"||ai<=0)return;
  if(f.pending>0){const st=(ai<10)&&S.monitorUp;if(!st)f.pending-=dt;if(f.pending<=0)freddyAdvance();return;}
@@ -1927,28 +1927,28 @@ function updateFreddy(dt){const f=S.freddy,ai=S.ai[0];if(f.loc==="office"||ai<=0
 function updateBonnie(dt){const b=S.bonnie,ai=S.ai[1];if(ai<=0)return;b.acc+=dt;if(b.acc<MOVE_T.bonnie)return;b.acc=0;
  if(!roll(ai))return;
  if(b.loc==="leftdoor"){ if(S.leftDoor&&!S.leftJam){const from=b.loc;b.loc="dining";addCue("Bonnie leaves the left door");onAnimMove(from,b.loc);}
-  else{if(!S.leftJam){S.leftJam=true;addCue("!! LEFT DOOR JAMMED !!");AU.door(false);}S.pendingKill={who:"Bonnie"};} return;}
- const o=BONNIE_GRAPH[b.loc]; if(o){const from=b.loc;b.loc=o[rint(0,o.length-1)];AU.footstep();onAnimMove(from,b.loc);
+  else{if(!S.leftJam){S.leftJam=true;addCue("!! LEFT DOOR JAMMED !!");AudioSys.door(false);}S.pendingKill={who:"Bonnie"};} return;}
+ const o=BONNIE_GRAPH[b.loc]; if(o){const from=b.loc;b.loc=o[rint(0,o.length-1)];AudioSys.footstep();onAnimMove(from,b.loc);
   if(["westhall","closet","westcorner","leftdoor"].includes(b.loc))addCue("(footsteps, west)");
   if(b.loc==="westcorner"&&S.night>=4)addCue("(gurgle 2B)");
   if(b.loc==="leftdoor")addCue("Something at the LEFT door");} }
 function updateChica(dt){const c=S.chica,ai=S.ai[2];if(ai<=0)return;c.acc+=dt;if(c.acc<MOVE_T.chica)return;c.acc=0;
  if(!roll(ai))return;
  if(c.loc==="rightdoor"){ if(S.rightDoor&&!S.rightJam){const from=c.loc;c.loc=Math.random()<.5?"dining":"easthall";addCue("Chica leaves the right door");onAnimMove(from,c.loc);}
-  else{if(!S.rightJam){S.rightJam=true;addCue("!! RIGHT DOOR JAMMED !!");AU.door(false);}S.pendingKill={who:"Chica"};} return;}
- const o=CHICA_GRAPH[c.loc]; if(o){const from=c.loc;c.loc=o[rint(0,o.length-1)];AU.footstep();onAnimMove(from,c.loc);
+  else{if(!S.rightJam){S.rightJam=true;addCue("!! RIGHT DOOR JAMMED !!");AudioSys.door(false);}S.pendingKill={who:"Chica"};} return;}
+ const o=CHICA_GRAPH[c.loc]; if(o){const from=c.loc;c.loc=o[rint(0,o.length-1)];AudioSys.footstep();onAnimMove(from,c.loc);
   if(["kitchen","easthall","eastcorner","rightdoor"].includes(c.loc))addCue("(footsteps, east)");
   if(c.loc==="eastcorner"&&S.night>=4)addCue("(gurgle 4B)");
   if(c.loc==="rightdoor")addCue("Something at the RIGHT door");} }
 
 function startFoxyRun(){ const fx=S.foxy; fx.stage=4; fx.runT=1.5;
- addCue("FOXY IS RUNNING!"); AU.footstep(); AU.footstep(); }
+ addCue("FOXY IS RUNNING!"); AudioSys.footstep(); AudioSys.footstep(); }
 function updateFoxy(dt){ const fx=S.foxy; if(S.outage)return;
  if(S.night===1&&!S.foxyForce&&(S.time-S.lastAction)>70){ S.foxyForce=true; addCue("(the cove curtain rustles...)"); }
  if(fx.stage===4){ fx.runT-=dt;
   if(fx.runT<=0){
    if(S.leftDoor&&!S.leftJam){ fx.attacks++; const dr=1+5*(fx.attacks-1);
-    S.power-=dr; addCue("Foxy knocks! -"+dr+"%"); AU.door(true);
+    S.power-=dr; addCue("Foxy knocks! -"+dr+"%"); AudioSys.door(true);
     fx.stage=rint(0,1); fx.s4t=0; fx.acc=0;
     if(S.power<=0){S.power=0;startOutage();} }
    else { triggerJumpscare("Foxy","Foxy reached the open left door."); } }
@@ -1961,7 +1961,7 @@ function updateFoxy(dt){ const fx=S.foxy; if(S.outage)return;
  fx.songAcc+=dt;
  if(fx.songAcc>=3){ fx.songAcc=0;
   if((fx.stage===0||fx.stage===1)&&!(S.monitorUp&&S.currentCam==="1C")&&Math.random()<1/30){
-   AU.playSong(); addCue("(dum... dum... dum...)"); } }
+   AudioSys.playSong(); addCue("(dum... dum... dum...)"); } }
  if(S.monitorUp) return;
  fx.acc+=dt;
  if(fx.acc>=MOVE_T.foxy){ fx.acc=0;
@@ -1984,39 +1984,39 @@ function updatePower(dt){if(S.outage)return;S.powerAcc+=dt;
 function startOutage(){S.outage={phase:"jingle",t:0,dark:rnd(3,8)};
  S.monitorUp=false;S.monState="office";hideTrans();
  S.leftDoor=false;S.rightDoor=false;killLights();
- AU.humOff();AU.stopPhone();S.phoneOn=false;
- AU.setFan(false);
- addCue("POWER OUT...");S.musicT=AU.musicBox(); }
+ AudioSys.humOff();AudioSys.stopPhone();S.phoneOn=false;
+ AudioSys.setFan(false);
+ addCue("POWER OUT...");S.musicT=AudioSys.musicBox(); }
 function updateOutage(dt){const o=S.outage;o.t+=dt;
  if(o.phase==="jingle"){ if(o.t>S.musicT)o.phase="dark"; }
  else if(o.phase==="dark"){ if(o.t>S.musicT+o.dark){triggerJumpscare("Freddy","Power failure. Freddy found you in the dark.");} } }
 
 function toggleDoor(s){if(S.outage||S.monitorUp)return; markAction();
- if(s==="L"){if(S.leftJam){AU.buzz();return;}S.leftDoor=!S.leftDoor;AU.door(S.leftDoor);}
- else{if(S.rightJam){AU.buzz();return;}S.rightDoor=!S.rightDoor;AU.door(S.rightDoor);} renderFrame();}
+ if(s==="L"){if(S.leftJam){AudioSys.buzz();return;}S.leftDoor=!S.leftDoor;AudioSys.door(S.leftDoor);}
+ else{if(S.rightJam){AudioSys.buzz();return;}S.rightDoor=!S.rightDoor;AudioSys.door(S.rightDoor);} renderFrame();}
 function setLight(s,on){ if(s==="L")S.leftLight=on; else S.rightLight=on; if(!on)S.lightLock[s]=0; }
 function toggleLight(s){ if(S.outage||S.monitorUp)return;
- if(s==="L"&&S.leftJam){AU.buzz();return;}
- if(s==="R"&&S.rightJam){AU.buzz();return;}
+ if(s==="L"&&S.leftJam){AudioSys.buzz();return;}
+ if(s==="R"&&S.rightJam){AudioSys.buzz();return;}
  markAction();
  const other=(s==="L")?"R":"L";
  const on=(s==="L")?S.leftLight:S.rightLight;
  if(on){
-  if(S.lightLock[s]>0){ AU.buzz(); return; }
+  if(S.lightLock[s]>0){ AudioSys.buzz(); return; }
   setLight(s,false);
  } else {
   setLight(other,false);
   setLight(s,true);
   if(Math.random()<0.1){ S.lightLock[s]=0.5; addCue("(the light flickers...)"); }
  }
- AU.click(true); renderFrame(); }
+ AudioSys.click(true); renderFrame(); }
 
 function triggerJumpscare(who,reason){ if(S.screen!=="game")return; S.screen="jump";
  hideTrans();
- AU.stopAll();AU.stopPhone();S.phoneOn=false;AU.jumpscareScream();
+ AudioSys.stopAll();AudioSys.stopPhone();S.phoneOn=false;AudioSys.jumpscareScream();
  buildJumpscare(who,reason); }
 function doWin(){ if(S.night<7){S.unlocked=Math.max(S.unlocked,S.night+1);saveProg();}
- AU.stopAll();AU.stopPhone();S.phoneOn=false;AU.chimes();
+ AudioSys.stopAll();AudioSys.stopPhone();S.phoneOn=false;AudioSys.chimes();
  if(S.night===6)showEnding();else if(S.night===7)showPinkSlip();else showWinScreen(); }
 
 function drawStatic(){const cv=$("#staticCv");if(!cv)return;const cx=cv.getContext("2d");
@@ -2104,8 +2104,8 @@ function renderFrame(){const e=S.el;if(!e.time)return;
  const rw=e.rWin;
  if(S.rightDoor && S.rightLight && !dark && S.chica.loc==="rightdoor"){rw.className="doorWin lit";rw.innerHTML=makeWindowFig("Chica");}
  else{rw.className="doorWin";rw.innerHTML="";}
- if((S.leftLight||S.rightLight)&&!dark)AU.humOn();else AU.humOff();
- AU.setFan(S.started && !S.outage && !S.paused && S.monState!=="up");
+ if((S.leftLight||S.rightLight)&&!dark)AudioSys.humOn();else AudioSys.humOff();
+ AudioSys.setFan(S.started && !S.outage && !S.paused && S.monState!=="up");
  if(e.arrow){ e.arrow.classList.toggle("flip",S.monitorUp); e.arrow.style.display=dark?"none":"block"; }
  e.camOverlay.style.display=(S.monState==="up")?"block":"none";
  if(S.monState==="up"){e.camName.textContent="CAM "+S.currentCam+" — "+CAMS[S.currentCam].n;
@@ -2128,8 +2128,8 @@ function debugText(){const base=getAIRow(S.night,0);
 
 function updateGame(dt){ if(S.screen!=="game"||S.paused)return;
  if(!S.started){S.introT+=dt;if(S.introT>2.4){S.started=true;const io=$("#introOv");if(io)io.remove();
-   AU.startAmbient();AU.initFan();AU.initGhts();AU.initSong();
-   if(S.night===1){setTimeout(()=>{if(S.screen==="game"){AU.ring();S.phoneOn=true;setTimeout(()=>AU.playPhone(),900);renderFrame();}},1500);}}
+   AudioSys.startAmbient();AudioSys.initFan();AudioSys.initGhts();AudioSys.initSong();
+   if(S.night===1){setTimeout(()=>{if(S.screen==="game"){AudioSys.ring();S.phoneOn=true;setTimeout(()=>AudioSys.playPhone(),900);renderFrame();}},1500);}}
   renderFrame();return;}
  S.time+=dt;
  if(S.time>=T.H[6]){doWin();return;}
@@ -2228,8 +2228,8 @@ function buildGameDOM(){root.innerHTML=`
   b.innerHTML="CAM<br>"+k;
   const p=MAP_POS[k]; b.style.left=p[0]+"%"; b.style.top=p[1]+"%";
   b.onclick=()=>{ if(S.outage||S.monState!=="up")return; S.currentCam=k; S.camStatic=.35; S.roomSig=""; markAction();
-   AU.monStopKey("ds"); AU.monPlay("ds",0);
-   if((S.garble[k]||0)>0)AU.playGarble();
+   AudioSys.monStopKey("ds"); AudioSys.monPlay("ds",0);
+   if((S.garble[k]||0)>0)AudioSys.playGarble();
    renderFrame(); };
   cb.appendChild(b);});
  g("lDoor").onclick=()=>toggleDoor("L");g("rDoor").onclick=()=>toggleDoor("R");
@@ -2242,7 +2242,7 @@ function buildGameDOM(){root.innerHTML=`
   else if(S.monState==="closing")raiseMonitor(); };
  arrow.addEventListener("mouseenter",arrowToggle);
  arrow.addEventListener("click",arrowToggle);
- g("phoneMute").onclick=()=>{AU.stopPhone();S.phoneOn=false;renderFrame();};
+ g("phoneMute").onclick=()=>{AudioSys.stopPhone();S.phoneOn=false;renderFrame();};
  g("debugBtn").onclick=()=>g("debugPanel").classList.toggle("open");
  document.querySelectorAll("#debugPanel [data-d]").forEach(b=>b.onclick=()=>{const d=b.dataset.d;
   if(d==="hour")S.time=Math.min(S.time+T.H[1],T.H[6]-1);if(d==="pw")S.power=50;
@@ -2274,10 +2274,10 @@ function startGame(n){freshState();S.night=n;S.screen="game";
  if(n===4)S.night4Freddy=rint(1,2);
  if(n===7&&S.customAI.join("/")==="1/9/8/7"){buildGameDOM();renderFrame();triggerJumpscare("GoldenFreddy","CRASH");return;}
  updateAISchedule();buildGameDOM();
- AU.init();AU.resume();AU.monLoad();AU.garbleLoad();AU.initSong();preloadAllImages();
+ AudioSys.init();AudioSys.resume();AudioSys.monLoad();AudioSys.garbleLoad();AudioSys.initSong();preloadAllImages();
  renderFrame();}
 
-function showTitle(){S.screen="title";AU.stopPhone();AU.stopFan();AU.stopGhts();
+function showTitle(){S.screen="title";AudioSys.stopPhone();AudioSys.stopFan();AudioSys.stopGhts();
  preloadAllImages();
  root.innerHTML=`<div class="screen"><h1>FIVE NIGHTS</h1><div class="sub">survival sim — fan mechanics demo</div>
   <div class="menu"><button id="cont">Continue (Night ${Math.min(S.unlocked,7)})</button>

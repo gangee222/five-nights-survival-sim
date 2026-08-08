@@ -2128,7 +2128,7 @@ function debugText(){const base=getAIRow(S.night,0);
 
 function updateGame(dt){ if(S.screen!=="game"||S.paused)return;
  if(!S.started){S.introT+=dt;if(S.introT>2.4){S.started=true;const io=$("#introOv");if(io)io.remove();
-   AudioSys.startAmbient();AudioSys.initFan();AudioSys.initGhts();AudioSys.initSong();
+   AudioSys.startAmbient();AudioSys.initFan();AudioSys.initLights();AudioSys.initSong();
    if(S.night===1){setTimeout(()=>{if(S.screen==="game"){AudioSys.ring();S.phoneOn=true;setTimeout(()=>AudioSys.playPhone(),900);renderFrame();}},1500);}}
   renderFrame();return;}
  S.time+=dt;
@@ -2273,7 +2273,7 @@ function buildJumpscare(who,reason){const jo=$("#jumpOv");const jf=$("#jfig");
 function startGame(n){freshState();S.night=n;S.screen="game";
  if(n===4)S.night4Freddy=rint(1,2);
  if(n===7&&S.customAI.join("/")==="1/9/8/7"){buildGameDOM();renderFrame();triggerJumpscare("GoldenFreddy","CRASH");return;}
- updateAISchedule();buildGameDOM();
+ const T = DIFF[n]; updateAISchedule();buildGameDOM();
  AudioSys.init();AudioSys.resume();AudioSys.monLoad();AudioSys.garbleLoad();AudioSys.initSong();preloadAllImages();
  renderFrame();}
 
